@@ -9,7 +9,9 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-    console.log(socket);
+    socket.on("testi", (args) => {
+        socket.emit("data", `test${args}`);
+    });
 });
 
 httpServer.listen(8000);
