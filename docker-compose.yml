@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+    noppasivut-back:
+        restart: unless-stopped
+        build: .
+        ports:
+            - "8000:8000"
