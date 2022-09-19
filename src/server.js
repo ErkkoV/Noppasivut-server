@@ -9,8 +9,11 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-    socket.on("testi", (args) => {
-        socket.emit("data", `test${args}`);
+    socket.on("probs-front", (args) => {
+        socket.emit("probs-back", args);
+    });
+    socket.on("rolls-front", (args) => {
+        socket.emit("rolls-back", args);
     });
 });
 
