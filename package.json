@@ -7,7 +7,7 @@
     },
     "type": "module",
     "scripts": {
-        "start": "npm install",
+        "start": "npm install && cd src && node server.js",
         "pretty": "prettier --write .",
         "test": "jest",
         "coverage": "jest --coverage"
