@@ -1,7 +1,10 @@
 version: "3.9"
 services:
-    noppasivut-back:
+    noppasivut-io:
         restart: unless-stopped
         build: .
         ports:
             - "8000:8000"
+        command: >
+            "cd src"
+            "node server.js"
