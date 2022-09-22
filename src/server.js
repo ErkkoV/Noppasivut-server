@@ -1,6 +1,11 @@
 import http from "http";
 import { Server } from "socket.io";
 
+import { pool, createDB, sendMessage } from "./database.js";
+
+pool.connect();
+createDB();
+
 const httpServer = http.createServer();
 const io = new Server(httpServer, {
     cors: {
@@ -19,6 +24,7 @@ io.on("connection", (socket) => {
         io.to("noppasivu").emit("rolls-back", args);
     });
     socket.on("messages-front", (args) => {
+        sendMessage(args);
         io.to("noppasivu").emit("messages-back", args);
     });
 });
