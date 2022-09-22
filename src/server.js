@@ -23,9 +23,12 @@ io.on("connection", (socket) => {
     socket.on("rolls-front", (args) => {
         io.to("noppasivu").emit("rolls-back", args);
     });
-    socket.on("messages-front", (args) => {
-        sendMessage(args);
-        io.to("noppasivu").emit("messages-back", args);
+    socket.on("messages-front", async (args) => {
+        const message = await sendMessage(args);
+        if (message) {
+            const messages = await readMessages();
+            io.to("noppasivu").emit("messages-back", messages);
+        }
     });
     socket.on("load-messages", async () => {
         const messages = await readMessages();

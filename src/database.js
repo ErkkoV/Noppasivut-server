@@ -13,7 +13,7 @@ const probtext =
 const rolltext =
     'CREATE TABLE IF NOT EXISTS public."Rolls"("ID" character(255) NOT NULL, "UserID" character(255) NOT NULL, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
 const messagetext =
-    'CREATE TABLE IF NOT EXISTS public."Messages"(message character(255) NOT NULL)';
+    'CREATE TABLE IF NOT EXISTS public."Messages"("ID" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -29,15 +29,18 @@ const createDB = () => {
     });
 };
 
-const sendMessage = (mess) => {
+const sendMessage = async (mess) => {
     const messtext = 'INSERT INTO public."Messages"(message) VALUES($1)';
-    pool.query(messtext, [mess], (err, res) => {
-        console.log(err, res);
-    });
+    try {
+        const res = await pool.query(messtext, [mess]);
+        return res;
+    } catch (err) {
+        console.log(err.stack);
+    }
 };
 
 const readMessages = async () => {
-    const messtext = 'SELECT message FROM public."Messages"';
+    const messtext = 'SELECT time, message FROM public."Messages"';
     try {
         const res = await pool.query(messtext);
         return res.rows;
