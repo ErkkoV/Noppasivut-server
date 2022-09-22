@@ -36,4 +36,14 @@ const sendMessage = (mess) => {
     });
 };
 
-export { sendMessage, pool, createDB };
+const readMessages = async () => {
+    const messtext = 'SELECT message FROM public."Messages"';
+    try {
+        const res = await pool.query(messtext);
+        return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+export { sendMessage, pool, createDB, readMessages };
