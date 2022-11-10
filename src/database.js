@@ -9,11 +9,11 @@ const pool = new pg.Pool({
 });
 
 const probtext =
-    'CREATE TABLE IF NOT EXISTS public."Probs"("ID" character(255) NOT NULL, "UserID" character(255) NOT NULL, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
+    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const rolltext =
-    'CREATE TABLE IF NOT EXISTS public."Rolls"("ID" character(255) NOT NULL, "UserID" character(255) NOT NULL, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
+    'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const messagetext =
-    'CREATE TABLE IF NOT EXISTS public."Messages"("ID" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
+    'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -49,4 +49,94 @@ const readMessages = async () => {
     }
 };
 
-export { sendMessage, pool, createDB, readMessages };
+const sendProb = async (mess) => {
+    const probtext =
+        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
+    try {
+        const res = await pool.query(probtext, [
+            mess[0].attackskill,
+            mess[0].defenceskill,
+            mess[0].attackroll,
+            mess[0].defenceroll,
+            mess[0].result,
+            mess[0].results,
+        ]);
+        return res;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const readProbs = async () => {
+    const probtext =
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Probs"';
+    try {
+        const res = await pool.query(probtext);
+        return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const sendRoll = async (mess) => {
+    const rollValues = [
+        mess.attackskill,
+        mess.defenceskill,
+        mess.attackroll,
+        mess.defenceroll,
+        mess.result,
+        mess.results,
+    ];
+
+    let rolltext =
+        'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
+
+    console.log(mess.id);
+    if (Number(mess.id) !== 0) {
+        rollValues.push(Number(mess.id));
+        rolltext =
+            'UPDATE public."Rolls" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6 WHERE "id" = $7';
+    }
+
+    try {
+        const res = await pool.query(rolltext, rollValues);
+        return res;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const readRolls = async () => {
+    const rolltext =
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls"';
+    try {
+        const res = await pool.query(rolltext);
+        return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const delRoll = async (mess) => {
+    try {
+        const res = await pool.query(
+            'DELETE FROM public."Rolls" WHERE "id" = $1',
+            [mess.id]
+        );
+        return res;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+export {
+    sendMessage,
+    pool,
+    createDB,
+    readMessages,
+    readProbs,
+    readRolls,
+    sendRoll,
+    sendProb,
+    delRoll,
+};
