@@ -80,21 +80,22 @@ const readProbs = async () => {
 
 const sendRoll = async (mess) => {
     const rollValues = [
-        mess[0].attackskill,
-        mess[0].defenceskill,
-        mess[0].attackroll,
-        mess[0].defenceroll,
-        mess[0].result,
-        mess[0].results,
+        mess.attackskill,
+        mess.defenceskill,
+        mess.attackroll,
+        mess.defenceroll,
+        mess.result,
+        mess.results,
     ];
 
     let rolltext =
         'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
 
-    if (mess[0].id !== 0) {
-        rollValues.push(mess[0].id);
+    console.log(mess.id);
+    if (Number(mess.id) !== 0) {
+        rollValues.push(Number(mess.id));
         rolltext =
-            'UPDATE public."Rolls" SET(attackskill, defenceskill, attackroll, defenceroll, result, results, id) VALUES($1, $2, $3, $4, $5, $6) WHERE VALUES($7)';
+            'UPDATE public."Rolls" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6 WHERE "id" = $7';
     }
 
     try {
