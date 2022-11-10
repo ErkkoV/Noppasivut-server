@@ -9,9 +9,9 @@ const pool = new pg.Pool({
 });
 
 const probtext =
-    'CREATE TABLE IF NOT EXISTS public."Probs"("ID" character(255) NOT NULL, "UserID" character(255) NOT NULL, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
+    'CREATE TABLE IF NOT EXISTS public."Probs"("ID" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
 const rolltext =
-    'CREATE TABLE IF NOT EXISTS public."Rolls"("ID" character(255) NOT NULL, "UserID" character(255) NOT NULL, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
+    'CREATE TABLE IF NOT EXISTS public."Rolls"("ID" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default, "AttackSkill" integer,"DefenceSkill" integer,"AttackRoll" integer,"DefenceRoll" integer,"Results" json[])';
 const messagetext =
     'CREATE TABLE IF NOT EXISTS public."Messages"("ID" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
 
@@ -49,4 +49,57 @@ const readMessages = async () => {
     }
 };
 
-export { sendMessage, pool, createDB, readMessages };
+const sendProb = async (mess) => {
+    const probtext =
+        'INSERT INTO public."Probs"(AttackSkill, DefenceSkill, AttackRoll, DefenceRoll, Results) VALUES($1)';
+    try {
+        const res = await pool.query(probtext, [mess]);
+        return res;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const readProbs = async () => {
+    const probtext =
+        'SELECT ID, time, AttackSkill, DefenceSkill, AttackRoll, DefenceRoll, Results FROM public."Probs"';
+    try {
+        const res = await pool.query(probtext);
+        return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const sendRoll = async (mess) => {
+    const rolltext =
+        'INSERT INTO public."Rolls"(AttackSkill, DefenceSkill, AttackRoll, DefenceRoll, Results) VALUES($1)';
+    try {
+        const res = await pool.query(rolltext, [mess]);
+        return res;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const readRolls = async () => {
+    const rolltext =
+        'SELECT ID, time, AttackSkill, DefenceSkill, AttackRoll, DefenceRoll, Results FROM public."Rolls"';
+    try {
+        const res = await pool.query(rolltext);
+        return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+export {
+    sendMessage,
+    pool,
+    createDB,
+    readMessages,
+    readProbs,
+    readRolls,
+    sendRoll,
+    sendProb,
+};

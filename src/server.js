@@ -1,7 +1,16 @@
 import http from "http";
 import { Server } from "socket.io";
 
-import { pool, createDB, sendMessage, readMessages } from "./database.js";
+import {
+    pool,
+    createDB,
+    sendMessage,
+    readMessages,
+    readProbs,
+    readRolls,
+    sendRoll,
+    sendProb,
+} from "./database.js";
 
 pool.connect();
 createDB();
@@ -18,15 +27,17 @@ io.on("connection", (socket) => {
     socket.join("noppasivu");
 
     socket.on("probs-front", async (args) => {
-        const probs = await readProbs(args);
-        if (probs) {
+        const prob = await sendProb(args);
+        if (prob) {
+            const probs = await readProbs();
             io.to("noppasivu").emit("probs-back", probs);
         }
     });
 
     socket.on("rolls-front", async (args) => {
-        const rolls = await readRolls();
-        if (rolls) {
+        const roll = await sendRoll();
+        if (roll) {
+            const rolls = await readRolls();
             io.to("noppasivu").emit("rolls-back", rolls);
         }
     });
