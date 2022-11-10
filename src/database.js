@@ -123,7 +123,6 @@ const delRoll = async (mess) => {
             'DELETE FROM public."Rolls" WHERE "id" = $1',
             [mess.id]
         );
-        console.log(res);
         return res;
     } catch (err) {
         console.log(err.stack);
