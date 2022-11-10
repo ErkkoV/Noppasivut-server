@@ -9,9 +9,9 @@ const pool = new pg.Pool({
 });
 
 const probtext =
-    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" text, "results" text)';
+    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const rolltext =
-    'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" text, "results" text)';
+    'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const messagetext =
     'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
 
