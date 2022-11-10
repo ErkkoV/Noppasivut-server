@@ -18,7 +18,7 @@ createDB();
 const httpServer = http.createServer();
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://10.201.204.39:3000",
+        origin: `http://localhost:3000`,
         // origin: "http://10.69.168.88:3000",
     },
 });
@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("rolls-front", async (args) => {
-        const roll = await sendRoll();
+        const roll = await sendRoll(args);
         if (roll) {
             const rolls = await readRolls();
             io.to("noppasivu").emit("rolls-back", rolls);
