@@ -79,17 +79,26 @@ const readProbs = async () => {
 };
 
 const sendRoll = async (mess) => {
-    const rolltext =
+    const rollValues = [
+        mess[0].attackskill,
+        mess[0].defenceskill,
+        mess[0].attackroll,
+        mess[0].defenceroll,
+        mess[0].result,
+        mess[0].results,
+    ];
+
+    let rolltext =
         'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
+
+    if (mess[0].id !== 0) {
+        rollValues.push(mess[0].id);
+        rolltext =
+            'UPDATE public."Rolls" SET(attackskill, defenceskill, attackroll, defenceroll, result, results, id) VALUES($1, $2, $3, $4, $5, $6) WHERE VALUES($7)';
+    }
+
     try {
-        const res = await pool.query(rolltext, [
-            mess[0].attackskill,
-            mess[0].defenceskill,
-            mess[0].attackroll,
-            mess[0].defenceroll,
-            mess[0].result,
-            mess[0].results,
-        ]);
+        const res = await pool.query(rolltext, rollValues);
         return res;
     } catch (err) {
         console.log(err.stack);
