@@ -17,12 +17,20 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
     socket.join("noppasivu");
 
-    socket.on("probs-front", (args) => {
-        io.to("noppasivu").emit("probs-back", args);
+    socket.on("probs-front", async (args) => {
+        const probs = await readProbs(args);
+        if (probs) {
+            io.to("noppasivu").emit("probs-back", probs);
+        }
     });
-    socket.on("rolls-front", (args) => {
-        io.to("noppasivu").emit("rolls-back", args);
+
+    socket.on("rolls-front", async (args) => {
+        const rolls = await readRolls();
+        if (rolls) {
+            io.to("noppasivu").emit("rolls-back", rolls);
+        }
     });
+
     socket.on("messages-front", async (args) => {
         const message = await sendMessage(args);
         if (message) {
@@ -30,6 +38,7 @@ io.on("connection", (socket) => {
             io.to("noppasivu").emit("messages-back", messages);
         }
     });
+
     socket.on("load-messages", async () => {
         const messages = await readMessages();
         io.to("noppasivu").emit("save-messages", messages);
