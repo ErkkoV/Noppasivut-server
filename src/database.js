@@ -111,8 +111,20 @@ const readRolls = async () => {
         'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls"';
     try {
         const res = await pool.query(rolltext);
-        console.log(res);
         return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const delRoll = async (mess) => {
+    try {
+        const res = await pool.query(
+            'DELETE FROM public."Rolls" WHERE "id" = $1',
+            [mess.id]
+        );
+        console.log(res);
+        return res;
     } catch (err) {
         console.log(err.stack);
     }
@@ -127,4 +139,5 @@ export {
     readRolls,
     sendRoll,
     sendProb,
+    delRoll,
 };

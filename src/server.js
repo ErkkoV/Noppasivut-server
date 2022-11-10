@@ -10,6 +10,7 @@ import {
     readRolls,
     sendRoll,
     sendProb,
+    delRoll,
 } from "./database.js";
 
 pool.connect();
@@ -36,6 +37,14 @@ io.on("connection", (socket) => {
 
     socket.on("rolls-front", async (args) => {
         const roll = await sendRoll(args);
+        if (roll) {
+            const rolls = await readRolls();
+            io.to("noppasivu").emit("rolls-back", rolls);
+        }
+    });
+
+    socket.on("rolls-front-del", async (args) => {
+        const roll = await delRoll(args);
         if (roll) {
             const rolls = await readRolls();
             io.to("noppasivu").emit("rolls-back", rolls);
