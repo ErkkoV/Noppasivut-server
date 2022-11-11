@@ -50,17 +50,27 @@ const readMessages = async () => {
 };
 
 const sendProb = async (mess) => {
-    const probtext =
+    const probValues = [
+        mess.attackskill,
+        mess.defenceskill,
+        mess.attackroll,
+        mess.defenceroll,
+        mess.result,
+        mess.results,
+    ];
+
+    let probtext =
         'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
+
+    console.log(mess.id);
+    if (Number(mess.id) !== 0) {
+        probValues.push(Number(mess.id));
+        rolltext =
+            'UPDATE public."Probs" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6 WHERE "id" = $7';
+    }
+
     try {
-        const res = await pool.query(probtext, [
-            mess[0].attackskill,
-            mess[0].defenceskill,
-            mess[0].attackroll,
-            mess[0].defenceroll,
-            mess[0].result,
-            mess[0].results,
-        ]);
+        const res = await pool.query(probText, probValues);
         return res;
     } catch (err) {
         console.log(err.stack);
@@ -69,10 +79,22 @@ const sendProb = async (mess) => {
 
 const readProbs = async () => {
     const probtext =
-        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Probs"';
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls"';
     try {
         const res = await pool.query(probtext);
         return res.rows;
+    } catch (err) {
+        console.log(err.stack);
+    }
+};
+
+const delProb = async (mess) => {
+    try {
+        const res = await pool.query(
+            'DELETE FROM public."Probs" WHERE "id" = $1',
+            [mess.id]
+        );
+        return res;
     } catch (err) {
         console.log(err.stack);
     }
@@ -139,4 +161,5 @@ export {
     sendRoll,
     sendProb,
     delRoll,
+    delProb,
 };
