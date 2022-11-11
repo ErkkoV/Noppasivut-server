@@ -60,6 +60,13 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("load-data", async () => {
+        const probs = await readProbs();
+        const rolls = await readRolls();
+        io.to("noppasivu").emit("rolls-back", rolls);
+        io.to("noppasivu").emit("probs-back", probs);
+    });
+
     socket.on("messages-front", async (args) => {
         const message = await sendMessage(args);
         if (message) {
