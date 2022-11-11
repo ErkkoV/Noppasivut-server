@@ -1,10 +1,35 @@
 version: "3.9"
 services:
-    noppasivut-io:
+    noppa-db:
+        container_name: noppa-db
+        image: postgres:latest
         restart: unless-stopped
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=Noppasivut
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=kakka
+        ports:
+            - "5432:5432"
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    noppasivut-back:
+        container_name: noppasivut-back
         build: .
+        restart: unless-stopped
+        volumes:
+            - noppasivut:/usr/src/app/static/
         ports:
             - "8000:8000"
-        command: >
-            "cd src"
-            "node server.js"
+        depends_on:
+            - noppa-db
+        links:
+            - noppa-db:noppa-db
+
+volumes:
+    postgres_data:
+    noppasivut:

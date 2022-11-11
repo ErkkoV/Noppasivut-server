@@ -2,10 +2,10 @@ import pg from "pg";
 
 const pool = new pg.Pool({
     user: "postgres",
-    host: "localhost",
+    host: "noppa-db",
     database: "Noppasivut",
     password: "kakka",
-    port: 5433,
+    port: 5432,
 });
 
 const probtext =

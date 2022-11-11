@@ -1,9 +1,10 @@
-FROM node:latest
-
+FROM node:16.18.0-alpine3.16
 
 WORKDIR /usr/src/app
-COPY package*.json ./
+COPY package.json package-lock.json* ./
+RUN cd ..
 
-RUN npm install
 COPY . .
+
+CMD ["npm", "start"]
 
