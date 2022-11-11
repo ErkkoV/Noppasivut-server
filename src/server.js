@@ -32,6 +32,7 @@ io.on("connection", (socket) => {
         const prob = await sendProb(args);
         if (prob) {
             const probs = await readProbs();
+            console.log(probs);
             io.to("noppasivu").emit("probs-back", probs);
         }
     });

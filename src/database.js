@@ -9,7 +9,7 @@ const pool = new pg.Pool({
 });
 
 const probtext =
-    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
+    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "resultarray" json)';
 const rolltext =
     'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const messagetext =
@@ -56,21 +56,20 @@ const sendProb = async (mess) => {
         mess.attackroll,
         mess.defenceroll,
         mess.result,
-        mess.results,
+        mess.resultarray,
     ];
 
     let probtext =
-        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
+        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, resultarray) VALUES($1, $2, $3, $4, $5, $6)';
 
-    console.log(mess.id);
     if (Number(mess.id) !== 0) {
         probValues.push(Number(mess.id));
-        rolltext =
-            'UPDATE public."Probs" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6 WHERE "id" = $7';
+        probtext =
+            'UPDATE public."Probs" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "resultarray" = $6 WHERE "id" = $7';
     }
 
     try {
-        const res = await pool.query(probText, probValues);
+        const res = await pool.query(probtext, probValues);
         return res;
     } catch (err) {
         console.log(err.stack);
@@ -79,7 +78,7 @@ const sendProb = async (mess) => {
 
 const readProbs = async () => {
     const probtext =
-        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls"';
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, resultarray FROM public."Probs"';
     try {
         const res = await pool.query(probtext);
         return res.rows;
@@ -113,7 +112,6 @@ const sendRoll = async (mess) => {
     let rolltext =
         'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
 
-    console.log(mess.id);
     if (Number(mess.id) !== 0) {
         rollValues.push(Number(mess.id));
         rolltext =
