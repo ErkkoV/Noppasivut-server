@@ -11,6 +11,7 @@ import {
     sendRoll,
     sendProb,
     delRoll,
+    delProb,
 } from "./database.js";
 
 pool.connect();
@@ -49,6 +50,21 @@ io.on("connection", (socket) => {
             const rolls = await readRolls();
             io.to("noppasivu").emit("rolls-back", rolls);
         }
+    });
+
+    socket.on("probs-front-del", async (args) => {
+        const prob = await delProb(args);
+        if (prob) {
+            const probs = await readProbs();
+            io.to("noppasivu").emit("probs-back", probs);
+        }
+    });
+
+    socket.on("load-data", async () => {
+        const probs = await readProbs();
+        const rolls = await readRolls();
+        io.to("noppasivu").emit("rolls-back", rolls);
+        io.to("noppasivu").emit("probs-back", probs);
     });
 
     socket.on("messages-front", async (args) => {
