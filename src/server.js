@@ -20,7 +20,8 @@ createDB();
 const httpServer = http.createServer();
 const io = new Server(httpServer, {
     cors: {
-        origin: `http://localhost`,
+        origin: "noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:80",
+        // origin: `http://localhost`,
         // origin: "http://10.69.168.88:3000",
     },
 });
