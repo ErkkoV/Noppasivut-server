@@ -1,4 +1,5 @@
-import http from "http";
+import { createServer } from "http";
+import express from "express";
 import { Server } from "socket.io";
 
 import {
@@ -17,9 +18,11 @@ import {
 pool.connect();
 createDB();
 
-const httpServer = http.createServer();
+const app = express();
+const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
+        // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
         origin: `http://localhost`,
         // origin: "http://10.69.168.88:3000",
     },
