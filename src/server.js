@@ -2,8 +2,8 @@ import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
 import session from "express-session";
-import bodyparser from "body-parser";
 import passport from "passport";
+import LocalStrategy from "passport-local";
 
 import {
     pool,
@@ -25,34 +25,33 @@ const app = express();
 const httpServer = createServer(app);
 
 const sessionMiddleware = session({
-    secret: "changeit",
+    secret: "nopat",
     resave: false,
     saveUninitialized: false,
 });
 
 app.use(sessionMiddleware);
-app.use(bodyparser);
 app.use(passport.initialize());
 app.use(passport.session());
 
-const DUMMY_USER = {
-    id: 2,
-    username: "noppa",
-};
-
-const ANON_USER = {
+const RANDOM_USER = {
     id: 1,
     username: "anon",
+};
+
+const NOPPA_USER = {
+    id: 2,
+    username: "noppa",
 };
 
 passport.use(
     new LocalStrategy((username, password, done) => {
         if (username === "noppa" && password === "noppa") {
-            console.log("authenticated user");
-            return done(null, DUMMY_USER);
+            console.log("authentication OK");
+            return done(null, NOPPA_USER);
         } else {
-            console.log("anonymous user");
-            return done(null, ANON_USER);
+            console.log("Random user");
+            return done(null, RANDOM_USER);
         }
     })
 );
@@ -91,6 +90,8 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+    passport.authenticate("LocalStrategy");
+
     cb(socket.request.user ? socket.request.user.username : "");
 
     const session = socket.request.session;
