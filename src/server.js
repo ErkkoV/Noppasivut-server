@@ -45,25 +45,27 @@ const NOPPA_USER = {
 };
 
 passport.use(
-    new LocalStrategy((username, password, done) => {
+    new LocalStrategy((username, password, cb) => {
         if (username === "noppa" && password === "noppa") {
             console.log("authentication OK");
-            return done(null, NOPPA_USER);
+            return cb(null, NOPPA_USER);
         } else {
             console.log("Random user");
-            return done(null, RANDOM_USER);
+            return cb(null, RANDOM_USER);
         }
     })
 );
 
 passport.serializeUser((user, cb) => {
     console.log(`serializeUser ${user.id}`);
-    cb(null, user.id);
+    cb(null, {
+        username: user.username,
+    });
 });
 
 passport.deserializeUser((id, cb) => {
     console.log(`deserializeUser ${id}`);
-    cb(null, user.id);
+    cb(null, user);
 });
 
 const io = new Server(httpServer, {
@@ -90,9 +92,12 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-    passport.authenticate("LocalStrategy");
-
-    cb(socket.request.user ? socket.request.user.username : "");
+    console.log(socket.auth);
+    passport.authenticate("local");
+    socket.on("login", (cb) => {
+        console.log(cb);
+        cb(socket.request.user ? socket.request.user.username : "");
+    });
 
     const session = socket.request.session;
     console.log(`saving sid ${socket.id} in session ${session.id}`);
