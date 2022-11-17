@@ -1,6 +1,9 @@
 import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
+import session from "express-session";
+import bodyparser from "body-parser";
+import passport from "passport";
 
 import {
     pool,
@@ -86,4 +89,4 @@ io.on("connection", (socket) => {
     });
 });
 
-httpServer.listen(8000);
+httpServer.listen(port);
