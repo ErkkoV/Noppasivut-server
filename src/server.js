@@ -45,8 +45,9 @@ const NOPPA_USER = {
 };
 
 passport.use(
-    new LocalStrategy((auth, cb) => {
-        if (auth.username === "noppa" && auth.password === "noppa") {
+    new LocalStrategy((username, password, cb) => {
+        console.log("test");
+        if (username === "noppa" && password === "noppa") {
             console.log("authentication OK");
             return cb(null, NOPPA_USER);
         } else {
@@ -83,17 +84,17 @@ io.use(wrap(sessionMiddleware));
 io.use(wrap(passport.initialize()));
 io.use(wrap(passport.session()));
 
-io.on("connection", (socket) => {
-    io.use((socket, next) => {
-        console.log(socket.handshake.auth.username);
-        if (socket.handshake.auth.username) {
-            passport.authenticate("local");
-            next();
-        } else {
-            next(new Error("unauthorized"));
-        }
-    });
+io.use((socket, next) => {
+    console.log(socket.handshake.auth.username);
+    if (socket.handshake) {
+        passport.authenticate("local");
+        next();
+    } else {
+        next(new Error("unauthorized"));
+    }
+});
 
+io.on("connection", (socket) => {
     const session = socket.request.session;
     console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
