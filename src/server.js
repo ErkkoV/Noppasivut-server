@@ -45,8 +45,8 @@ const NOPPA_USER = {
 };
 
 passport.use(
-    new LocalStrategy((username, password, cb) => {
-        if (username === "noppa" && password === "noppa") {
+    new LocalStrategy((auth, cb) => {
+        if (auth.username === "noppa" && auth.password === "noppa") {
             console.log("authentication OK");
             return cb(null, NOPPA_USER);
         } else {
@@ -56,10 +56,10 @@ passport.use(
     })
 );
 
-passport.serializeUser((user, cb) => {
+passport.serializeUser((auth, cb) => {
     console.log(`serializeUser ${user.id}`);
     cb(null, {
-        username: user.username,
+        username: auth.username,
     });
 });
 
@@ -83,20 +83,15 @@ io.use(wrap(sessionMiddleware));
 io.use(wrap(passport.initialize()));
 io.use(wrap(passport.session()));
 
-io.use((socket, next) => {
-    if (socket.request.user) {
-        next();
-    } else {
-        next(new Error("unauthorized"));
-    }
-});
-
 io.on("connection", (socket) => {
-    console.log(socket.auth);
-    passport.authenticate("local");
-    socket.on("login", (cb) => {
-        console.log(cb);
-        cb(socket.request.user ? socket.request.user.username : "");
+    io.use((socket, next) => {
+        console.log(socket.handshake.auth.username);
+        if (socket.handshake.auth.username) {
+            passport.authenticate("local");
+            next();
+        } else {
+            next(new Error("unauthorized"));
+        }
     });
 
     const session = socket.request.session;
