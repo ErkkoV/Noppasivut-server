@@ -23,7 +23,6 @@ createDB();
 
 const app = express();
 const httpServer = createServer(app);
-const port = process.env.PORT;
 
 const sessionMiddleware = session({
     secret: "changeit",
@@ -37,18 +36,23 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const DUMMY_USER = {
-    id: 1,
+    id: 2,
     username: "noppa",
+};
+
+const ANON_USER = {
+    id: 1,
+    username: "anon",
 };
 
 passport.use(
     new LocalStrategy((username, password, done) => {
         if (username === "noppa" && password === "noppa") {
-            console.log("authentication OK");
+            console.log("authenticated user");
             return done(null, DUMMY_USER);
         } else {
-            console.log("wrong credentials");
-            return done(null, false);
+            console.log("anonymous user");
+            return done(null, ANON_USER);
         }
     })
 );
@@ -60,7 +64,7 @@ passport.serializeUser((user, cb) => {
 
 passport.deserializeUser((id, cb) => {
     console.log(`deserializeUser ${id}`);
-    cb(null, DUMMY_USER);
+    cb(null, user.id);
 });
 
 const io = new Server(httpServer, {
@@ -71,7 +75,29 @@ const io = new Server(httpServer, {
     },
 });
 
+const wrap = (middleware) => (socket, next) =>
+    middleware(socket.request, {}, next);
+
+io.use(wrap(sessionMiddleware));
+io.use(wrap(passport.initialize()));
+io.use(wrap(passport.session()));
+
+io.use((socket, next) => {
+    if (socket.request.user) {
+        next();
+    } else {
+        next(new Error("unauthorized"));
+    }
+});
+
 io.on("connection", (socket) => {
+    cb(socket.request.user ? socket.request.user.username : "");
+
+    const session = socket.request.session;
+    console.log(`saving sid ${socket.id} in session ${session.id}`);
+    session.socketId = socket.id;
+    session.save();
+
     socket.join("noppasivu");
 
     socket.on("probs-front", async (args) => {
@@ -127,4 +153,4 @@ io.on("connection", (socket) => {
     });
 });
 
-httpServer.listen(port);
+httpServer.listen(8000);
