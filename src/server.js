@@ -25,6 +25,44 @@ const app = express();
 const httpServer = createServer(app);
 const port = process.env.PORT;
 
+const sessionMiddleware = session({
+    secret: "changeit",
+    resave: false,
+    saveUninitialized: false,
+});
+
+app.use(sessionMiddleware);
+app.use(bodyparser);
+app.use(passport.initialize());
+app.use(passport.session());
+
+const DUMMY_USER = {
+    id: 1,
+    username: "noppa",
+};
+
+passport.use(
+    new LocalStrategy((username, password, done) => {
+        if (username === "noppa" && password === "noppa") {
+            console.log("authentication OK");
+            return done(null, DUMMY_USER);
+        } else {
+            console.log("wrong credentials");
+            return done(null, false);
+        }
+    })
+);
+
+passport.serializeUser((user, cb) => {
+    console.log(`serializeUser ${user.id}`);
+    cb(null, user.id);
+});
+
+passport.deserializeUser((id, cb) => {
+    console.log(`deserializeUser ${id}`);
+    cb(null, DUMMY_USER);
+});
+
 const io = new Server(httpServer, {
     cors: {
         // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
