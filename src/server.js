@@ -20,6 +20,8 @@ createDB();
 
 const app = express();
 const httpServer = createServer(app);
+const port = process.env.PORT;
+
 const io = new Server(httpServer, {
     cors: {
         // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
