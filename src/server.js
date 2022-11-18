@@ -40,7 +40,7 @@ const loginUser = (user, pass) => {
     if (user === "noppa" && pass === "noppa") {
         return user;
     } else {
-        return "noppa1";
+        return user;
     }
 };
 
