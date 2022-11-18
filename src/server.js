@@ -2,8 +2,6 @@ import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
 import session from "express-session";
-import passport from "passport";
-import LocalStrategy from "passport-local";
 
 import {
     pool,
@@ -30,45 +28,6 @@ const sessionMiddleware = session({
     saveUninitialized: false,
 });
 
-app.use(sessionMiddleware);
-app.use(passport.initialize());
-app.use(passport.session());
-
-const RANDOM_USER = {
-    id: 1,
-    username: "anon",
-};
-
-const NOPPA_USER = {
-    id: 2,
-    username: "noppa",
-};
-
-passport.use(
-    new LocalStrategy((username, password, cb) => {
-        console.log("test");
-        if (username === "noppa" && password === "noppa") {
-            console.log("authentication OK");
-            return cb(null, NOPPA_USER);
-        } else {
-            console.log("Random user");
-            return cb(null, RANDOM_USER);
-        }
-    })
-);
-
-passport.serializeUser((auth, cb) => {
-    console.log(`serializeUser ${user.id}`);
-    cb(null, {
-        username: auth.username,
-    });
-});
-
-passport.deserializeUser((id, cb) => {
-    console.log(`deserializeUser ${id}`);
-    cb(null, user);
-});
-
 const io = new Server(httpServer, {
     cors: {
         // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
@@ -77,24 +36,33 @@ const io = new Server(httpServer, {
     },
 });
 
+const loginUser = (user, pass) => {
+    if (user === "noppa" && pass === "noppa") {
+        return user;
+    } else {
+        return "noppa1";
+    }
+};
+
 const wrap = (middleware) => (socket, next) =>
     middleware(socket.request, {}, next);
 
 io.use(wrap(sessionMiddleware));
-io.use(wrap(passport.initialize()));
-io.use(wrap(passport.session()));
-
 io.use((socket, next) => {
-    console.log(socket.handshake.auth.username);
-    if (socket.handshake) {
-        passport.authenticate("local");
-        next();
-    } else {
-        next(new Error("unauthorized"));
+    if (
+        !socket.request.user ||
+        socket.handshake.auth.username !== socket.request.user
+    ) {
+        socket.request.user = loginUser(
+            socket.handshake.auth.username,
+            socket.handshake.auth.password
+        );
     }
+    next();
 });
 
 io.on("connection", (socket) => {
+    console.log(socket.request.user);
     const session = socket.request.session;
     console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
