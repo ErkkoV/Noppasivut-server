@@ -1,6 +1,7 @@
 import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
+import session from "express-session";
 
 import {
     pool,
@@ -20,6 +21,13 @@ createDB();
 
 const app = express();
 const httpServer = createServer(app);
+
+const sessionMiddleware = session({
+    secret: "nopat",
+    resave: false,
+    saveUninitialized: false,
+});
+
 const io = new Server(httpServer, {
     cors: {
         // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
@@ -28,10 +36,43 @@ const io = new Server(httpServer, {
     },
 });
 
+const loginUser = (user, pass) => {
+    if (user === "noppa" && pass === "noppa") {
+        return "noppa";
+    } else {
+        return user;
+    }
+};
+
+const wrap = (middleware) => (socket, next) =>
+    middleware(socket.request, {}, next);
+
+io.use(wrap(sessionMiddleware));
+io.use(async (socket, next) => {
+    const user = await socket.user;
+    if (socket.handshake.auth.username !== user) {
+        socket.user = loginUser(
+            socket.handshake.auth.username,
+            socket.handshake.auth.password
+        );
+    }
+    console.log(socket.user);
+    next();
+});
+
 io.on("connection", (socket) => {
+    console.log(socket.user);
+    console.log(socket.id);
+    const session = socket.request.session;
+    console.log(`saving sid ${socket.id} in session ${session.id}`);
+    session.socketId = socket.id;
+    session.save();
+
     socket.join("noppasivu");
 
     socket.on("probs-front", async (args) => {
+        console.log(socket.user);
+        console.log(socket.id);
         const prob = await sendProb(args);
         if (prob) {
             const probs = await readProbs();
