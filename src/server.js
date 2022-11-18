@@ -38,7 +38,7 @@ const io = new Server(httpServer, {
 
 const loginUser = (user, pass) => {
     if (user === "noppa" && pass === "noppa") {
-        return user;
+        return "noppa";
     } else {
         return user;
     }
@@ -48,21 +48,21 @@ const wrap = (middleware) => (socket, next) =>
     middleware(socket.request, {}, next);
 
 io.use(wrap(sessionMiddleware));
-io.use((socket, next) => {
-    if (
-        !socket.request.user ||
-        socket.handshake.auth.username !== socket.request.user
-    ) {
-        socket.request.user = loginUser(
+io.use(async (socket, next) => {
+    const user = await socket.user;
+    if (socket.handshake.auth.username !== user) {
+        socket.user = loginUser(
             socket.handshake.auth.username,
             socket.handshake.auth.password
         );
     }
+    console.log(socket.user);
     next();
 });
 
 io.on("connection", (socket) => {
-    console.log(socket.request.user);
+    console.log(socket.user);
+    console.log(socket.id);
     const session = socket.request.session;
     console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
@@ -71,6 +71,8 @@ io.on("connection", (socket) => {
     socket.join("noppasivu");
 
     socket.on("probs-front", async (args) => {
+        console.log(socket.user);
+        console.log(socket.id);
         const prob = await sendProb(args);
         if (prob) {
             const probs = await readProbs();
