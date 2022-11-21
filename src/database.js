@@ -14,6 +14,8 @@ const rolltext =
     'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const messagetext =
     'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
+const usertext =
+    'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" character(255) NOT NULL, "password" character(255) NOT NULL, "sessions" text[])';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -27,6 +29,17 @@ const createDB = () => {
     pool.query(messagetext, (err, res) => {
         console.log(err, res);
     });
+    pool.query(usertext, (err, res) => {
+        console.log(err, res);
+    });
+};
+
+const createUser = (user, password) => {
+    return null;
+};
+
+const loginCheck = (user, password) => {
+    return null;
 };
 
 const sendMessage = async (mess) => {
@@ -160,4 +173,6 @@ export {
     sendProb,
     delRoll,
     delProb,
+    loginCheck,
+    createUser,
 };

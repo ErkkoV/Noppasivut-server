@@ -14,6 +14,7 @@ import {
     sendProb,
     delRoll,
     delProb,
+    loginCheck,
 } from "./database.js";
 
 pool.connect();
@@ -40,6 +41,7 @@ const loginUser = (user, pass) => {
     if (user === "noppa" && pass === "noppa") {
         return "noppa";
     } else {
+        loginCheck()
         return user;
     }
 };
