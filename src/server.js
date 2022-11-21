@@ -37,12 +37,18 @@ const io = new Server(httpServer, {
     },
 });
 
-const loginUser = (user, pass) => {
+const loginUser = async (user, pass) => {
     if (user === "noppa" && pass === "noppa") {
         return "noppa";
     } else {
-        loginCheck()
-        return user;
+        const res = await loginCheck(user, pass);
+        if (res === "wrong password") {
+            return "random";
+        } else if (res === "user does not exist") {
+            return "random";
+        } else {
+            return res;
+        }
     }
 };
 
@@ -51,9 +57,8 @@ const wrap = (middleware) => (socket, next) =>
 
 io.use(wrap(sessionMiddleware));
 io.use(async (socket, next) => {
-    const user = await socket.user;
-    if (socket.handshake.auth.username !== user) {
-        socket.user = loginUser(
+    if (!socket.user || socket.handshake.auth.username !== socket.user) {
+        socket.user = await loginUser(
             socket.handshake.auth.username,
             socket.handshake.auth.password
         );

@@ -38,8 +38,17 @@ const createUser = (user, password) => {
     return null;
 };
 
-const loginCheck = (user, password) => {
-    return null;
+const loginCheck = async (user, password) => {
+    const logintext = 'SELECT password FROM public."Users" WHERE username = $1';
+    try {
+        const res = await pool.query(logintext, user);
+        if (res === password) {
+            return user;
+        }
+        return "wrong password";
+    } catch {
+        return "user does not exist";
+    }
 };
 
 const sendMessage = async (mess) => {
