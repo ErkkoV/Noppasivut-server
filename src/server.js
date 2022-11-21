@@ -14,6 +14,8 @@ import {
     sendProb,
     delRoll,
     delProb,
+    loginCheck,
+    createUser,
 } from "./database.js";
 
 pool.connect();
@@ -36,11 +38,20 @@ const io = new Server(httpServer, {
     },
 });
 
-const loginUser = (user, pass) => {
+const loginUser = async (user, pass) => {
+    console.log(user, pass);
     if (user === "noppa" && pass === "noppa") {
         return "noppa";
     } else {
-        return user;
+        const res = await loginCheck(user, pass);
+        console.log(res);
+        if (res === "wrong password") {
+            return "random";
+        } else if (res === "user does not exist") {
+            return "random";
+        } else {
+            return res;
+        }
     }
 };
 
@@ -50,26 +61,39 @@ const wrap = (middleware) => (socket, next) =>
 io.use(wrap(sessionMiddleware));
 io.use(async (socket, next) => {
     const user = await socket.user;
-    if (socket.handshake.auth.username !== user) {
-        socket.user = loginUser(
+    if (!user || socket.handshake.auth.username !== user) {
+        socket.user = await loginUser(
             socket.handshake.auth.username,
             socket.handshake.auth.password
         );
     }
+    if (socket.user === "random") {
+        socket.emit("create-back", "Login failed");
+    }
+    if (socket.user !== "noppa" && socket.user !== "random") {
+        socket.emit("create-back", "Login succeeded");
+    }
+
     console.log(socket.user);
     next();
 });
 
 io.on("connection", (socket) => {
-    console.log(socket.user);
-    console.log(socket.id);
     const session = socket.request.session;
     console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
     session.save();
 
+    socket.emit("user", socket.user);
+
     socket.join("noppasivu");
 
+    socket.on("create-user", async (args) => {
+        const user = await createUser(args.username, args.password);
+        if (user) {
+            socket.emit("create-back", user);
+        }
+    });
     socket.on("probs-front", async (args) => {
         console.log(socket.user);
         console.log(socket.id);

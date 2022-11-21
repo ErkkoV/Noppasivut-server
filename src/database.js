@@ -14,6 +14,8 @@ const rolltext =
     'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const messagetext =
     'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
+const usertext =
+    'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -27,6 +29,46 @@ const createDB = () => {
     pool.query(messagetext, (err, res) => {
         console.log(err, res);
     });
+    pool.query(usertext, (err, res) => {
+        console.log(err, res);
+    });
+};
+
+const createUser = async (user, password) => {
+    const findText = 'SELECT username FROM public."Users" WHERE username = $1';
+    try {
+        const res = await pool.query(findText, [user]);
+        if (res.rows[0].username) {
+            return "Username in use";
+        }
+    } catch {
+        console.log("Name not used");
+    }
+
+    const createtext =
+        'INSERT INTO public."Users"(username, password) VALUES($1, $2)';
+    try {
+        const res = await pool.query(createtext, [user, password]);
+        console.log(res);
+        return "User added";
+    } catch {
+        return "Failed to add user";
+    }
+};
+
+const loginCheck = async (user, password) => {
+    const logintext = 'SELECT password FROM public."Users" WHERE username = $1';
+    try {
+        const res = await pool.query(logintext, [user]);
+        if (password === res.rows[0].password) {
+            return user;
+        } else if (password !== res.rows[0].password) {
+            return "wrong password";
+        }
+    } catch (err) {
+        console.log(err);
+        return "user does not exist";
+    }
 };
 
 const sendMessage = async (mess) => {
@@ -160,4 +202,6 @@ export {
     sendProb,
     delRoll,
     delProb,
+    loginCheck,
+    createUser,
 };
