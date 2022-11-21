@@ -84,6 +84,8 @@ io.on("connection", (socket) => {
     session.socketId = socket.id;
     session.save();
 
+    socket.emit("user", socket.user);
+
     socket.join("noppasivu");
 
     socket.on("create-user", async (args) => {
