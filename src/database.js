@@ -15,7 +15,7 @@ const rolltext =
 const messagetext =
     'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
 const usertext =
-    'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" character(255) NOT NULL, "password" character(255) NOT NULL, "sessions" text[])';
+    'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -37,8 +37,8 @@ const createDB = () => {
 const createUser = async (user, password) => {
     const findText = 'SELECT username FROM public."Users" WHERE username = $1';
     try {
-        const res = await pool.query(findText, user);
-        if (res) {
+        const res = await pool.query(findText, [user]);
+        if (res.rows[0].username) {
             return "Username in use";
         }
     } catch {
@@ -59,12 +59,14 @@ const createUser = async (user, password) => {
 const loginCheck = async (user, password) => {
     const logintext = 'SELECT password FROM public."Users" WHERE username = $1';
     try {
-        const res = await pool.query(logintext, user);
-        if (res === password) {
+        const res = await pool.query(logintext, [user]);
+        if (password === res.rows[0].password) {
             return user;
+        } else if (password !== res.rows[0].password) {
+            return "wrong password";
         }
-        return "wrong password";
-    } catch {
+    } catch (err) {
+        console.log(err);
         return "user does not exist";
     }
 };

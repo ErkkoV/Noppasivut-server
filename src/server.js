@@ -39,10 +39,12 @@ const io = new Server(httpServer, {
 });
 
 const loginUser = async (user, pass) => {
+    console.log(user, pass);
     if (user === "noppa" && pass === "noppa") {
         return "noppa";
     } else {
         const res = await loginCheck(user, pass);
+        console.log(res);
         if (res === "wrong password") {
             return "random";
         } else if (res === "user does not exist") {
@@ -58,7 +60,8 @@ const wrap = (middleware) => (socket, next) =>
 
 io.use(wrap(sessionMiddleware));
 io.use(async (socket, next) => {
-    if (!socket.user || socket.handshake.auth.username !== socket.user) {
+    const user = await socket.user;
+    if (!user || socket.handshake.auth.username !== user) {
         socket.user = await loginUser(
             socket.handshake.auth.username,
             socket.handshake.auth.password
@@ -69,8 +72,6 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-    console.log(socket.user);
-    console.log(socket.id);
     const session = socket.request.session;
     console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
