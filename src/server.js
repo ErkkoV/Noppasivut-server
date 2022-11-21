@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);
         if (user) {
-            io.emit(user);
+            socket.emit(user);
         }
     });
 
