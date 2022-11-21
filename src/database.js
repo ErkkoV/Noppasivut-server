@@ -42,7 +42,7 @@ const createUser = async (user, password) => {
             return "Username in use";
         }
     } catch {
-        console.log("name not used");
+        console.log("Name not used");
     }
 
     const createtext =
@@ -50,9 +50,9 @@ const createUser = async (user, password) => {
     try {
         const res = await pool.query(createtext, [user, password]);
         console.log(res);
-        return "user added";
+        return "User added";
     } catch {
-        return "failed to add user";
+        return "Failed to add user";
     }
 };
 

@@ -68,10 +68,10 @@ io.use(async (socket, next) => {
         );
     }
     if (socket.user === "random") {
-        socket.emit("create-back", "login failed");
+        socket.emit("create-back", "Login failed");
     }
     if (socket.user !== "noppa" && socket.user !== "random") {
-        socket.emit("create-back", "login succeeded");
+        socket.emit("create-back", "Login succeeded");
     }
 
     console.log(socket.user);
