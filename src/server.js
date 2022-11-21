@@ -67,6 +67,9 @@ io.use(async (socket, next) => {
             socket.handshake.auth.password
         );
     }
+    if (socket.user === "random") {
+        socket.emit("create-back", "login failed");
+    }
     console.log(socket.user);
     next();
 });
@@ -82,10 +85,9 @@ io.on("connection", (socket) => {
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);
         if (user) {
-            socket.emit(user);
+            socket.emit("create-back", user);
         }
     });
-
     socket.on("probs-front", async (args) => {
         console.log(socket.user);
         console.log(socket.id);
