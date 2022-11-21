@@ -34,8 +34,26 @@ const createDB = () => {
     });
 };
 
-const createUser = (user, password) => {
-    return null;
+const createUser = async (user, password) => {
+    const findText = 'SELECT username FROM public."Users" WHERE username = $1';
+    try {
+        const res = await pool.query(findText, user);
+        if (res) {
+            return "Username in use";
+        }
+    } catch {
+        console.log("name not used");
+    }
+
+    const createtext =
+        'INSERT INTO public."Users"(username, password) VALUES($1, $2)';
+    try {
+        const res = await pool.query(createtext, [user, password]);
+        console.log(res);
+        return "user added";
+    } catch {
+        return "failed to add user";
+    }
 };
 
 const loginCheck = async (user, password) => {

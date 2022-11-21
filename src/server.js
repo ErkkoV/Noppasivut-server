@@ -15,6 +15,7 @@ import {
     delRoll,
     delProb,
     loginCheck,
+    createUser,
 } from "./database.js";
 
 pool.connect();
@@ -76,6 +77,13 @@ io.on("connection", (socket) => {
     session.save();
 
     socket.join("noppasivu");
+
+    socket.on("create-user", async (args) => {
+        const user = await createUser(args.username, args.password);
+        if (user) {
+            io.emit(user);
+        }
+    });
 
     socket.on("probs-front", async (args) => {
         console.log(socket.user);
