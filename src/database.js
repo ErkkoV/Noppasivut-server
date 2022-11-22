@@ -76,7 +76,8 @@ const loginCheck = async (user, password) => {
     }
     try {
         const res = await pool.query(logintext, [user]);
-        if (checkPass(password, res.rows[0].password)) {
+        const check = await checkPass(password, res.rows[0].password);
+        if (check) {
             return user;
         } else {
             return "wrong password";
