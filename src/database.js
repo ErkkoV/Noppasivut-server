@@ -2,12 +2,12 @@ import pg from "pg";
 import bcrypt from "bcrypt";
 
 const hashStuff = async (pass) => {
-    const saltRounds = 10;
+    const saltRounds = 12;
     const hash = bcrypt.hashSync(pass, saltRounds);
     return hash;
 };
 
-const checkPass = async (hash, pass) => {
+const checkPass = async (pass, hash) => {
     const result = bcrypt.compareSync(pass, hash);
     return result;
 };
@@ -77,6 +77,7 @@ const loginCheck = async (user, password) => {
     try {
         const res = await pool.query(logintext, [user]);
         const check = await checkPass(password, res.rows[0].password);
+        console.log(check);
         if (check) {
             return user;
         } else {
