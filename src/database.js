@@ -1,4 +1,16 @@
 import pg from "pg";
+import bcrypt from "bcrypt";
+
+const hashStuff = async (pass) => {
+    const saltRounds = 12;
+    const hash = bcrypt.hashSync(pass, saltRounds);
+    return hash;
+};
+
+const checkPass = async (pass, hash) => {
+    const result = bcrypt.compareSync(pass, hash);
+    return result;
+};
 
 const pool = new pg.Pool({
     user: "postgres",
@@ -48,7 +60,8 @@ const createUser = async (user, password) => {
     const createtext =
         'INSERT INTO public."Users"(username, password) VALUES($1, $2)';
     try {
-        const res = await pool.query(createtext, [user, password]);
+        const cryptedPass = await hashStuff(password);
+        const res = await pool.query(createtext, [user, cryptedPass]);
         console.log(res);
         return "User added";
     } catch {
@@ -58,11 +71,16 @@ const createUser = async (user, password) => {
 
 const loginCheck = async (user, password) => {
     const logintext = 'SELECT password FROM public."Users" WHERE username = $1';
+    if (user === "noppa" || user === "random") {
+        return "random";
+    }
     try {
         const res = await pool.query(logintext, [user]);
-        if (password === res.rows[0].password) {
+        const check = await checkPass(password, res.rows[0].password);
+        console.log(check);
+        if (check) {
             return user;
-        } else if (password !== res.rows[0].password) {
+        } else {
             return "wrong password";
         }
     } catch (err) {
