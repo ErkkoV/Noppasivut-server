@@ -145,7 +145,7 @@ io.on("connection", (socket) => {
 
     socket.on("load-messages", async () => {
         const messages = await readMessages();
-        io.to("noppasivu").emit("save-messages", messages);
+        io.to("noppasivu").emit("messages-back", messages);
     });
 });
 
