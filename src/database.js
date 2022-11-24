@@ -25,7 +25,7 @@ const probtext =
 const rolltext =
     'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
 const messagetext =
-    'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "message" character(255) NOT NULL)';
+    'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "message" varchar(1000) NOT NULL)';
 const usertext =
     'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
 
@@ -90,9 +90,10 @@ const loginCheck = async (user, password) => {
 };
 
 const sendMessage = async (mess) => {
-    const messtext = 'INSERT INTO public."Messages"(message) VALUES($1)';
+    const messtext =
+        'INSERT INTO public."Messages"(username, message) VALUES($1, $2)';
     try {
-        const res = await pool.query(messtext, [mess]);
+        const res = await pool.query(messtext, mess);
         return res;
     } catch (err) {
         console.log(err.stack);
@@ -100,7 +101,8 @@ const sendMessage = async (mess) => {
 };
 
 const readMessages = async () => {
-    const messtext = 'SELECT time, message FROM public."Messages"';
+    const messtext =
+        'SELECT id, time, username, message FROM public."Messages" ORDER BY id DESC LIMIT 15';
     try {
         const res = await pool.query(messtext);
         return res.rows;
