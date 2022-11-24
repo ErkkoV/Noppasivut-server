@@ -102,7 +102,7 @@ const sendMessage = async (mess) => {
 
 const readMessages = async () => {
     const messtext =
-        'SELECT id, time, username, message FROM public."Messages" ORDER BY id DESC LIMIT 10';
+        'SELECT id, time, username, message FROM public."Messages" ORDER BY id DESC LIMIT 15';
     try {
         const res = await pool.query(messtext);
         console.log(res.rows);
