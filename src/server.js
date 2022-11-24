@@ -35,6 +35,7 @@ const io = new Server(httpServer, {
         // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
         origin: `http://localhost`,
         // origin: "http://10.69.168.88:3000",
+        // origin: `http://10.201.204.40`,
     },
 });
 
@@ -146,7 +147,6 @@ io.on("connection", (socket) => {
     socket.on("load-messages", async () => {
         const messages = await readMessages();
         if (messages) {
-            console.log(messages);
             io.to("noppasivu").emit("messages-back", messages);
         }
     });

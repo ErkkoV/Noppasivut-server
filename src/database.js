@@ -105,7 +105,6 @@ const readMessages = async () => {
         'SELECT id, time, username, message FROM public."Messages" ORDER BY id DESC LIMIT 15';
     try {
         const res = await pool.query(messtext);
-        console.log(res.rows);
         return res.rows;
     } catch (err) {
         console.log(err.stack);
