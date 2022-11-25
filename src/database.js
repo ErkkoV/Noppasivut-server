@@ -126,11 +126,11 @@ const sendMessage = async (mess) => {
     }
 };
 
-const readMessages = async () => {
+const readMessages = async (session) => {
     const messtext =
-        'SELECT id, time, username, message, session FROM public."Messages" WHERE "session" = $3 ORDER BY id DESC LIMIT 15';
+        'SELECT id, time, username, message, session FROM public."Messages" WHERE "session" = $1 ORDER BY id DESC LIMIT 15';
     try {
-        const res = await pool.query(messtext);
+        const res = await pool.query(messtext, [session]);
         return res.rows;
     } catch (err) {
         console.log(err.stack);
