@@ -117,7 +117,7 @@ const sessionList = async (user) => {
 
 const sendMessage = async (mess) => {
     const messtext =
-        'INSERT INTO public."Messages"(username, message) VALUES($1, $2)';
+        'INSERT INTO public."Messages"(username, message, session) VALUES($1, $2, $3)';
     try {
         const res = await pool.query(messtext, mess);
         return res;
@@ -128,7 +128,7 @@ const sendMessage = async (mess) => {
 
 const readMessages = async () => {
     const messtext =
-        'SELECT id, time, username, message FROM public."Messages" ORDER BY id DESC LIMIT 15';
+        'SELECT id, time, username, message, session FROM public."Messages" WHERE "session" = $3 ORDER BY id DESC LIMIT 15';
     try {
         const res = await pool.query(messtext);
         return res.rows;
