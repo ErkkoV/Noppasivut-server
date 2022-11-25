@@ -88,8 +88,6 @@ io.use(async (socket, next) => {
     if (socket.user !== "noppa" && socket.user !== "random") {
         socket.emit("create-back", "Login succeeded");
     }
-
-    console.log(socket.user);
     next();
 });
 
@@ -129,8 +127,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("probs-front", async (args) => {
-        console.log(socket.user);
-        console.log(socket.id);
         const prob = await sendProb(args[1]);
         if (prob) {
             const probs = await readProbs(args[0]);
@@ -139,7 +135,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("rolls-front", async (args) => {
-        console.log(args);
         const roll = await sendRoll(args[1]);
         if (roll) {
             const rolls = await readRolls(args[0]);
