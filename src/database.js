@@ -100,10 +100,6 @@ const loginCheck = async (user, password) => {
     }
 };
 
-/* const sessionFind = async () => {
-    //
-}; */
-
 const sessionList = async (user) => {
     const sessionText =
         'SELECT name FROM public."Sessions" WHERE $1 = ANY(users)';
@@ -114,6 +110,10 @@ const sessionList = async (user) => {
         console.log(err);
     }
 };
+
+const sessionFind = async (session) => {};
+
+const sessionLeave = async (session) => {};
 
 const sendMessage = async (mess) => {
     const messtext =

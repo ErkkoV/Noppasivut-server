@@ -17,6 +17,8 @@ import {
     loginCheck,
     createUser,
     sessionList,
+    sessionFind,
+    sessionLeave,
 } from "./database.js";
 
 pool.connect();
@@ -56,13 +58,6 @@ const loginUser = async (user, pass) => {
         }
     }
 };
-
-/* const socketJoin = async (sock, arg) => {
-    const socketName = await sessionFind(arg);
-    if (socketName) {
-        sock.join(socketName);
-    }
-}; */
 
 const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
@@ -104,9 +99,22 @@ io.on("connection", (socket) => {
 
     socket.emit("user", socket.user);
 
-    /*     socket.on("join", async (args) => {
-        socketJoin(socket, args);
-    }); */
+    socket.on("join-session", async (args) => {
+        const session = await sessionFind(args);
+        if (session) {
+            socket.join(args);
+            socket.emit("join", args);
+            socket.to(args).emit("users", session);
+        }
+    });
+
+    socket.on("leave-session", async (args) => {
+        const session = await sessionLeave(args);
+        if (session) {
+            socket.leave(args);
+            socket.to(args).emit("users", session);
+        }
+    });
 
     if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket, socket.user);
