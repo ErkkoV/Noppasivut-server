@@ -68,8 +68,8 @@ const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
     if (socketList) {
         socketList.forEach(async (each) => {
-            console.log(each);
             sock.join(each.name);
+            sock.emit("join", `Joined to ${each.name}`);
         });
     }
 };
@@ -109,7 +109,7 @@ io.on("connection", (socket) => {
         socketJoin(socket, args);
     });
 
-    if (socket.user !== "noppa" && socket.user !== random) {
+    if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket);
     }
 

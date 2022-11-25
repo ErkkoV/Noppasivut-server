@@ -74,6 +74,7 @@ const createUser = async (user, password) => {
             'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
         const res = await pool.query(createText, [user, user, [user]]);
         console.log("SESSION", res);
+        return "User added";
     } catch (err) {
         console.log(err);
     }
