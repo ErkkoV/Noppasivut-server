@@ -29,7 +29,7 @@ const messagetext =
 const usertext =
     'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
 const sessionsText =
-    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "admin" integer NOT NULL, "users" integer[], "rolls" integer[], "probs" integer[], "messages" integer[])';
+    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "name" varchar(255) NOT NULL, "admin" text NOT NULL, "users" text[], "rolls" integer[], "probs" integer[], "messages" integer[])';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -66,9 +66,16 @@ const createUser = async (user, password) => {
         const cryptedPass = await hashStuff(password);
         const res = await pool.query(createtext, [user, cryptedPass]);
         console.log(res);
-        return "User added";
     } catch {
         return "Failed to add user";
+    }
+    try {
+        const createText =
+            'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
+        const res = await pool.query(createText, [user, user, [user]]);
+        console.log("SESSION", res);
+    } catch (err) {
+        console.log(err);
     }
 };
 
@@ -89,6 +96,21 @@ const loginCheck = async (user, password) => {
     } catch (err) {
         console.log(err);
         return "user does not exist";
+    }
+};
+
+/* const sessionFind = async () => {
+    //
+}; */
+
+const sessionList = async (user) => {
+    const sessionText =
+        'SELECT name FROM public."Sessions" WHERE $1 = ANY(users)';
+    try {
+        const res = await pool.query(sessionText, [user]);
+        return res.rows;
+    } catch (err) {
+        console.log(err);
     }
 };
 
@@ -227,4 +249,5 @@ export {
     delProb,
     loginCheck,
     createUser,
+    sessionList,
 };

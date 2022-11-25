@@ -16,6 +16,7 @@ import {
     delProb,
     loginCheck,
     createUser,
+    sessionList,
 } from "./database.js";
 
 pool.connect();
@@ -56,6 +57,23 @@ const loginUser = async (user, pass) => {
     }
 };
 
+/* const socketJoin = async (sock, arg) => {
+    const socketName = await sessionFind(arg);
+    if (socketName) {
+        sock.join(socketName);
+    }
+}; */
+
+const socketCheck = async (sock, user) => {
+    const socketList = await sessionList(user);
+    if (socketList) {
+        socketList.forEach(async (each) => {
+            console.log(each);
+            sock.join(each.name);
+        });
+    }
+};
+
 const wrap = (middleware) => (socket, next) =>
     middleware(socket.request, {}, next);
 
@@ -87,7 +105,13 @@ io.on("connection", (socket) => {
 
     socket.emit("user", socket.user);
 
-    socket.join("noppasivu");
+    socket.on("join", async (args) => {
+        socketJoin(socket, args);
+    });
+
+    if (socket.user !== "noppa" && socket.user !== random) {
+        socketCheck(socket);
+    }
 
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);
