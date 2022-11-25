@@ -99,19 +99,20 @@ io.use(async (socket, next) => {
 
 io.on("connection", (socket) => {
     const session = socket.request.session;
-    console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
     session.save();
 
     socket.emit("user", socket.user);
 
-    socket.on("join", async (args) => {
+    /*     socket.on("join", async (args) => {
         socketJoin(socket, args);
-    });
+    }); */
 
     if (socket.user !== "noppa" && socket.user !== "random") {
-        socketCheck(socket);
+        socketCheck(socket, socket.user);
     }
+
+    socket.join("noppasivu");
 
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);
@@ -119,13 +120,14 @@ io.on("connection", (socket) => {
             socket.emit("create-back", user);
         }
     });
+
     socket.on("probs-front", async (args) => {
         console.log(socket.user);
         console.log(socket.id);
         const prob = await sendProb(args);
         if (prob) {
             const probs = await readProbs();
-            io.to("noppasivu").emit("probs-back", probs);
+            io.to(args.session).emit("probs-back", probs);
         }
     });
 
@@ -133,7 +135,7 @@ io.on("connection", (socket) => {
         const roll = await sendRoll(args);
         if (roll) {
             const rolls = await readRolls();
-            io.to("noppasivu").emit("rolls-back", rolls);
+            io.to(args.session).emit("rolls-back", rolls);
         }
     });
 
@@ -141,7 +143,7 @@ io.on("connection", (socket) => {
         const roll = await delRoll(args);
         if (roll) {
             const rolls = await readRolls();
-            io.to("noppasivu").emit("rolls-back", rolls);
+            io.to(args.session).emit("rolls-back", rolls);
         }
     });
 
@@ -149,29 +151,29 @@ io.on("connection", (socket) => {
         const prob = await delProb(args);
         if (prob) {
             const probs = await readProbs();
-            io.to("noppasivu").emit("probs-back", probs);
+            io.to(args.session).emit("probs-back", probs);
         }
     });
 
     socket.on("load-data", async () => {
         const probs = await readProbs();
         const rolls = await readRolls();
-        io.to("noppasivu").emit("rolls-back", rolls);
-        io.to("noppasivu").emit("probs-back", probs);
+        io.to(args.session).emit("rolls-back", rolls);
+        io.to(args.session).emit("probs-back", probs);
     });
 
     socket.on("messages-front", async (args) => {
         const message = await sendMessage(args);
         if (message) {
             const messages = await readMessages();
-            io.to("noppasivu").emit("messages-back", messages);
+            io.to(args.session).emit("messages-back", messages);
         }
     });
 
     socket.on("load-messages", async () => {
         const messages = await readMessages();
         if (messages) {
-            io.to("noppasivu").emit("messages-back", messages);
+            io.to(args.session).emit("messages-back", messages);
         }
     });
 });
