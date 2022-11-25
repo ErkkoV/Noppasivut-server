@@ -119,7 +119,9 @@ const sessionFind = async (session, user) => {
         const userlist = await pool.query(findText, [session]);
         console.log(userlist);
         const Users = userlist.rows[0].users;
-        Users.push(user);
+        if (!Users.includes(user)) {
+            Users.push(user);
+        }
         const res = await pool.query(sessionText, [session, Users]);
         if (res) {
             return Users;
