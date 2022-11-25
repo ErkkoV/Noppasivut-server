@@ -65,6 +65,7 @@ const socketCheck = async (sock, user) => {
         socketList.forEach(async (each) => {
             sock.join(each.name);
             sock.emit("join", each.name);
+            sock.emit("users", each.users);
         });
     }
 };
@@ -99,8 +100,8 @@ io.on("connection", (socket) => {
 
     socket.emit("user", socket.user);
 
-    socket.on("join-session", async (args) => {
-        const session = await sessionFind(args);
+    socket.on("join-session", async (args, user) => {
+        const session = await sessionFind(args, user);
         if (session) {
             socket.join(args);
             socket.emit("join", args);
@@ -108,8 +109,8 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("leave-session", async (args) => {
-        const session = await sessionLeave(args);
+    socket.on("leave-session", async (args, user) => {
+        const session = await sessionLeave(args, user);
         if (session) {
             socket.leave(args);
             socket.to(args).emit("users", session);

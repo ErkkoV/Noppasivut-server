@@ -102,7 +102,7 @@ const loginCheck = async (user, password) => {
 
 const sessionList = async (user) => {
     const sessionText =
-        'SELECT name FROM public."Sessions" WHERE $1 = ANY(users)';
+        'SELECT name, users FROM public."Sessions" WHERE $1 = ANY(users)';
     try {
         const res = await pool.query(sessionText, [user]);
         return res.rows;
@@ -111,9 +111,35 @@ const sessionList = async (user) => {
     }
 };
 
-const sessionFind = async (session) => {};
+const sessionFind = async (session, user) => {
+    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const sessionText =
+        'UPDATE public."Sessions" SET "users" = $2, WHERE "name" = $1';
+    try {
+        const userlist = await pool.query(findText, [session]);
+        const Users = userlist.users;
+        Users.push(user);
+        const res = await pool.query(sessionText, [session, Users]);
+        return res.rows;
+    } catch (err) {
+        console.log(err);
+    }
+};
 
-const sessionLeave = async (session) => {};
+const sessionLeave = async (session, user) => {
+    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const sessionText =
+        'UPDATE public."Sessions" SET "users" = $2, WHERE "name" = $1';
+    try {
+        const userlist = await pool.query(findText, [session]);
+        const Users = userlist.users;
+        Users.filter((name) => name !== user);
+        const res = await pool.query(sessionText, [session, Users]);
+        return res.rows;
+    } catch (err) {
+        console.log(err);
+    }
+};
 
 const sendMessage = async (mess) => {
     const messtext =
@@ -253,4 +279,6 @@ export {
     loginCheck,
     createUser,
     sessionList,
+    sessionFind,
+    sessionLeave,
 };
