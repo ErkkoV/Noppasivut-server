@@ -145,6 +145,7 @@ const sendProb = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.resultarray,
+        mess.session,
     ];
 
     let probtext =
@@ -164,11 +165,11 @@ const sendProb = async (mess) => {
     }
 };
 
-const readProbs = async () => {
+const readProbs = async (session) => {
     const probtext =
-        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, resultarray FROM public."Probs"';
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, resultarray FROM public."Probs" WHERE "session" = $1';
     try {
-        const res = await pool.query(probtext);
+        const res = await pool.query(probtext, [session]);
         return res.rows;
     } catch (err) {
         console.log(err.stack);
@@ -214,11 +215,11 @@ const sendRoll = async (mess) => {
     }
 };
 
-const readRolls = async () => {
+const readRolls = async (session) => {
     const rolltext =
-        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls"';
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls" WHERE "session" = $1';
     try {
-        const res = await pool.query(rolltext);
+        const res = await pool.query(rolltext, [session]);
         return res.rows;
     } catch (err) {
         console.log(err.stack);
