@@ -161,17 +161,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on("messages-front", async (args) => {
-        const message = await sendMessage(args);
+        const message = await sendMessage(args[1]);
         if (message) {
-            const messages = await readMessages();
-            io.to(args.session).emit("messages-back", messages);
+            const messages = await readMessages(args[0]);
+            io.to(args[0]).emit("messages-back", messages);
         }
     });
 
-    socket.on("load-messages", async () => {
-        const messages = await readMessages();
+    socket.on("load-messages", async (args) => {
+        const messages = await readMessages(args);
         if (messages) {
-            io.to(args.session).emit("messages-back", messages);
+            io.to(args).emit("messages-back", messages);
         }
     });
 });
