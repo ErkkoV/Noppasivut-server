@@ -16,6 +16,9 @@ import {
     delProb,
     loginCheck,
     createUser,
+    sessionList,
+    sessionFind,
+    sessionLeave,
 } from "./database.js";
 
 pool.connect();
@@ -56,6 +59,17 @@ const loginUser = async (user, pass) => {
     }
 };
 
+const socketCheck = async (sock, user) => {
+    const socketList = await sessionList(user);
+    if (socketList) {
+        socketList.forEach(async (each) => {
+            sock.join(each.name);
+            sock.emit("join", each.name);
+            sock.emit("users", each.users);
+        });
+    }
+};
+
 const wrap = (middleware) => (socket, next) =>
     middleware(socket.request, {}, next);
 
@@ -74,20 +88,44 @@ io.use(async (socket, next) => {
     if (socket.user !== "noppa" && socket.user !== "random") {
         socket.emit("create-back", "Login succeeded");
     }
-
-    console.log(socket.user);
     next();
 });
 
 io.on("connection", (socket) => {
     const session = socket.request.session;
-    console.log(`saving sid ${socket.id} in session ${session.id}`);
     session.socketId = socket.id;
     session.save();
 
     socket.emit("user", socket.user);
 
-    socket.join("noppasivu");
+    if (socket.user !== "noppa" && socket.user !== "random") {
+        socketCheck(socket, socket.user);
+    }
+
+    socket.on("join-session", async (args) => {
+        console.log("Joining", args);
+        const session = await sessionFind(args, socket.user);
+        if (session) {
+            console.log(session);
+            socket.join(args);
+            socket.emit("join", args);
+            socket.to(args).emit("users", session);
+            socketCheck(socket, socket.user);
+        }
+    });
+
+    socket.on("leave-session", async (args) => {
+        const session = await sessionLeave(args, socket.user);
+        if (session) {
+            socket.leave(args);
+            socket.to(args).emit("users", session);
+        }
+    });
+
+    socket.on("invite", (args) => {
+        // add a check if arg.inv exists
+        socket.to(args.inv).emit("invited-to", [args.session, args.user]);
+    });
 
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);
@@ -95,59 +133,58 @@ io.on("connection", (socket) => {
             socket.emit("create-back", user);
         }
     });
+
     socket.on("probs-front", async (args) => {
-        console.log(socket.user);
-        console.log(socket.id);
-        const prob = await sendProb(args);
+        const prob = await sendProb(args[1]);
         if (prob) {
-            const probs = await readProbs();
-            io.to("noppasivu").emit("probs-back", probs);
+            const probs = await readProbs(args[0]);
+            io.to(args[0]).emit("probs-back", probs);
         }
     });
 
     socket.on("rolls-front", async (args) => {
-        const roll = await sendRoll(args);
+        const roll = await sendRoll(args[1]);
         if (roll) {
-            const rolls = await readRolls();
-            io.to("noppasivu").emit("rolls-back", rolls);
+            const rolls = await readRolls(args[0]);
+            io.to(args[0]).emit("rolls-back", rolls);
         }
     });
 
     socket.on("rolls-front-del", async (args) => {
-        const roll = await delRoll(args);
+        const roll = await delRoll(args[1]);
         if (roll) {
-            const rolls = await readRolls();
-            io.to("noppasivu").emit("rolls-back", rolls);
+            const rolls = await readRolls(args[0]);
+            io.to(args[0]).emit("rolls-back", rolls);
         }
     });
 
     socket.on("probs-front-del", async (args) => {
-        const prob = await delProb(args);
+        const prob = await delProb(args[1]);
         if (prob) {
-            const probs = await readProbs();
-            io.to("noppasivu").emit("probs-back", probs);
+            const probs = await readProbs(args[0]);
+            io.to(args[0]).emit("probs-back", probs);
         }
     });
 
-    socket.on("load-data", async () => {
-        const probs = await readProbs();
-        const rolls = await readRolls();
-        io.to("noppasivu").emit("rolls-back", rolls);
-        io.to("noppasivu").emit("probs-back", probs);
+    socket.on("load-data", async (args) => {
+        const probs = await readProbs(args);
+        const rolls = await readRolls(args);
+        io.to(args).emit("rolls-back", rolls);
+        io.to(args).emit("probs-back", probs);
     });
 
     socket.on("messages-front", async (args) => {
-        const message = await sendMessage(args);
+        const message = await sendMessage(args[1]);
         if (message) {
-            const messages = await readMessages();
-            io.to("noppasivu").emit("messages-back", messages);
+            const messages = await readMessages(args[0]);
+            io.to(args[0]).emit("messages-back", messages);
         }
     });
 
-    socket.on("load-messages", async () => {
-        const messages = await readMessages();
+    socket.on("load-messages", async (args) => {
+        const messages = await readMessages(args);
         if (messages) {
-            io.to("noppasivu").emit("messages-back", messages);
+            io.to(args).emit("messages-back", messages);
         }
     });
 });

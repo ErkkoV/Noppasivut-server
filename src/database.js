@@ -21,27 +21,30 @@ const pool = new pg.Pool({
 });
 
 const probtext =
-    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "resultarray" json)';
+    'CREATE TABLE IF NOT EXISTS public."Probs"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "resultarray" json, "session" varchar(255) NOT NULL)';
 const rolltext =
-    'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[])';
+    'CREATE TABLE IF NOT EXISTS public."Rolls"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "attackskill" integer, "defenceskill" integer, "attackroll" integer, "defenceroll" integer, "result" json, "results" json[], "session" varchar(255) NOT NULL)';
 const messagetext =
-    'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "message" varchar(1000) NOT NULL)';
+    'CREATE TABLE IF NOT EXISTS public."Messages"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "message" varchar(1000) NOT NULL, "session" varchar(255) NOT NULL)';
 const usertext =
     'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
+const sessionsText =
+    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "name" varchar(255) NOT NULL, "admin" text NOT NULL, "users" text[], "rolls" integer[], "probs" integer[], "messages" integer[])';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
         console.log(err, res);
     });
-
     pool.query(rolltext, (err, res) => {
         console.log(err, res);
     });
-
     pool.query(messagetext, (err, res) => {
         console.log(err, res);
     });
     pool.query(usertext, (err, res) => {
+        console.log(err, res);
+    });
+    pool.query(sessionsText, (err, res) => {
         console.log(err, res);
     });
 };
@@ -63,9 +66,17 @@ const createUser = async (user, password) => {
         const cryptedPass = await hashStuff(password);
         const res = await pool.query(createtext, [user, cryptedPass]);
         console.log(res);
-        return "User added";
     } catch {
         return "Failed to add user";
+    }
+    try {
+        const createText =
+            'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
+        const res = await pool.query(createText, [user, user, [user]]);
+        console.log("SESSION", res);
+        return "User added";
+    } catch (err) {
+        console.log(err);
     }
 };
 
@@ -89,9 +100,55 @@ const loginCheck = async (user, password) => {
     }
 };
 
+const sessionList = async (user) => {
+    const sessionText =
+        'SELECT name, users FROM public."Sessions" WHERE $1 = ANY(users)';
+    try {
+        const res = await pool.query(sessionText, [user]);
+        return res.rows;
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+const sessionFind = async (session, user) => {
+    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const sessionText =
+        'UPDATE public."Sessions" SET "users" = $2 WHERE "name" = $1';
+    try {
+        const userlist = await pool.query(findText, [session]);
+        console.log(userlist);
+        const Users = userlist.rows[0].users;
+        if (!Users.includes(user)) {
+            Users.push(user);
+        }
+        const res = await pool.query(sessionText, [session, Users]);
+        if (res) {
+            return Users;
+        }
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+const sessionLeave = async (session, user) => {
+    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const sessionText =
+        'UPDATE public."Sessions" SET "users" = $2, WHERE "name" = $1';
+    try {
+        const userlist = await pool.query(findText, [session]);
+        const Users = userlist.rows[0].users;
+        Users.filter((name) => name !== user);
+        const res = await pool.query(sessionText, [session, Users]);
+        return res.rows;
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const sendMessage = async (mess) => {
     const messtext =
-        'INSERT INTO public."Messages"(username, message) VALUES($1, $2)';
+        'INSERT INTO public."Messages"(username, message, session) VALUES($1, $2, $3)';
     try {
         const res = await pool.query(messtext, mess);
         return res;
@@ -100,11 +157,11 @@ const sendMessage = async (mess) => {
     }
 };
 
-const readMessages = async () => {
+const readMessages = async (session) => {
     const messtext =
-        'SELECT id, time, username, message FROM public."Messages" ORDER BY id DESC LIMIT 15';
+        'SELECT id, time, username, message, session FROM public."Messages" WHERE "session" = $1 ORDER BY id DESC LIMIT 15';
     try {
-        const res = await pool.query(messtext);
+        const res = await pool.query(messtext, [session]);
         return res.rows;
     } catch (err) {
         console.log(err.stack);
@@ -119,15 +176,16 @@ const sendProb = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.resultarray,
+        mess.session,
     ];
 
     let probtext =
-        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, resultarray) VALUES($1, $2, $3, $4, $5, $6)';
+        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, resultarray, session) VALUES($1, $2, $3, $4, $5, $6, $7)';
 
     if (Number(mess.id) !== 0) {
         probValues.push(Number(mess.id));
         probtext =
-            'UPDATE public."Probs" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "resultarray" = $6 WHERE "id" = $7';
+            'UPDATE public."Probs" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "resultarray" = $6, "session" = $7 WHERE "id" = $8';
     }
 
     try {
@@ -138,12 +196,12 @@ const sendProb = async (mess) => {
     }
 };
 
-const readProbs = async () => {
+const readProbs = async (session) => {
     const probtext =
-        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, resultarray FROM public."Probs"';
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, resultarray, session FROM public."Probs" WHERE "session" = $1';
     try {
-        const res = await pool.query(probtext);
-        return res.rows;
+        const res = await pool.query(probtext, [session]);
+        return [session, res.rows];
     } catch (err) {
         console.log(err.stack);
     }
@@ -169,15 +227,16 @@ const sendRoll = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.results,
+        mess.session,
     ];
 
     let rolltext =
-        'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6)';
+        'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results, session) VALUES($1, $2, $3, $4, $5, $6, $7)';
 
     if (Number(mess.id) !== 0) {
         rollValues.push(Number(mess.id));
         rolltext =
-            'UPDATE public."Rolls" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6 WHERE "id" = $7';
+            'UPDATE public."Rolls" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6, "session" = $7 WHERE "id" = $8';
     }
 
     try {
@@ -188,12 +247,12 @@ const sendRoll = async (mess) => {
     }
 };
 
-const readRolls = async () => {
+const readRolls = async (session) => {
     const rolltext =
-        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results FROM public."Rolls"';
+        'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results, session FROM public."Rolls" WHERE "session" = $1';
     try {
-        const res = await pool.query(rolltext);
-        return res.rows;
+        const res = await pool.query(rolltext, [session]);
+        return [session, res.rows];
     } catch (err) {
         console.log(err.stack);
     }
@@ -224,4 +283,7 @@ export {
     delProb,
     loginCheck,
     createUser,
+    sessionList,
+    sessionFind,
+    sessionLeave,
 };
