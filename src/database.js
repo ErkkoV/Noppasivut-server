@@ -145,7 +145,7 @@ const sendProb = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.resultarray,
-        mess.sessionname,
+        mess.session,
     ];
 
     let probtext =
@@ -170,7 +170,7 @@ const readProbs = async (session) => {
         'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, resultarray, session FROM public."Probs" WHERE "session" = $1';
     try {
         const res = await pool.query(probtext, [session]);
-        return res.rows;
+        return [session, res.rows];
     } catch (err) {
         console.log(err.stack);
     }
@@ -196,7 +196,7 @@ const sendRoll = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.results,
-        mess.sessionname,
+        mess.session,
     ];
 
     let rolltext =
@@ -205,7 +205,7 @@ const sendRoll = async (mess) => {
     if (Number(mess.id) !== 0) {
         rollValues.push(Number(mess.id));
         rolltext =
-            'UPDATE public."Rolls" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6, "session" = 7 WHERE "id" = $8';
+            'UPDATE public."Rolls" SET "attackskill" = $1, "defenceskill" = $2, "attackroll" = $3, "defenceroll" = $4, "result" = $5, "results" = $6, "session" = $7 WHERE "id" = $8';
     }
 
     try {
@@ -221,7 +221,7 @@ const readRolls = async (session) => {
         'SELECT id, time, attackskill, defenceskill, attackroll, defenceroll, result, results, session FROM public."Rolls" WHERE "session" = $1';
     try {
         const res = await pool.query(rolltext, [session]);
-        return res.rows;
+        return [session, res.rows];
     } catch (err) {
         console.log(err.stack);
     }
