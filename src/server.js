@@ -125,15 +125,16 @@ io.on("connection", (socket) => {
         const prob = await sendProb(args[1]);
         if (prob) {
             const probs = await readProbs(args[0]);
-            io.to(args.session).emit("probs-back", probs);
+            io.to(args[0]).emit("probs-back", probs);
         }
     });
 
     socket.on("rolls-front", async (args) => {
+        console.log(args);
         const roll = await sendRoll(args[1]);
         if (roll) {
             const rolls = await readRolls(args[0]);
-            io.to(args.session).emit("rolls-back", rolls);
+            io.to(args[0]).emit("rolls-back", rolls);
         }
     });
 
@@ -141,7 +142,7 @@ io.on("connection", (socket) => {
         const roll = await delRoll(args[1]);
         if (roll) {
             const rolls = await readRolls(args[0]);
-            io.to(args.session).emit("rolls-back", rolls);
+            io.to(args[0]).emit("rolls-back", rolls);
         }
     });
 
@@ -149,7 +150,7 @@ io.on("connection", (socket) => {
         const prob = await delProb(args[1]);
         if (prob) {
             const probs = await readProbs(args[0]);
-            io.to(args.session).emit("probs-back", probs);
+            io.to(args[0]).emit("probs-back", probs);
         }
     });
 

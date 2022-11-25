@@ -145,11 +145,11 @@ const sendProb = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.resultarray,
-        mess.session,
+        mess.sessionname,
     ];
 
     let probtext =
-        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, resultarray) VALUES($1, $2, $3, $4, $5, $6, $7)';
+        'INSERT INTO public."Probs"(attackskill, defenceskill, attackroll, defenceroll, result, resultarray, session) VALUES($1, $2, $3, $4, $5, $6, $7)';
 
     if (Number(mess.id) !== 0) {
         probValues.push(Number(mess.id));
@@ -196,11 +196,11 @@ const sendRoll = async (mess) => {
         mess.defenceroll,
         mess.result,
         mess.results,
-        mess.session,
+        mess.sessionname,
     ];
 
     let rolltext =
-        'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results) VALUES($1, $2, $3, $4, $5, $6, $7)';
+        'INSERT INTO public."Rolls"(attackskill, defenceskill, attackroll, defenceroll, result, results, session) VALUES($1, $2, $3, $4, $5, $6, $7)';
 
     if (Number(mess.id) !== 0) {
         rollValues.push(Number(mess.id));
