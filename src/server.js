@@ -69,7 +69,7 @@ const socketCheck = async (sock, user) => {
     if (socketList) {
         socketList.forEach(async (each) => {
             sock.join(each.name);
-            sock.emit("join", `Joined to ${each.name}`);
+            sock.emit("join", each.name);
         });
     }
 };
@@ -111,8 +111,6 @@ io.on("connection", (socket) => {
     if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket, socket.user);
     }
-
-    socket.join("noppasivu");
 
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);
