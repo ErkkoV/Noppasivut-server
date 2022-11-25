@@ -98,26 +98,34 @@ io.on("connection", (socket) => {
 
     socket.emit("user", socket.user);
 
-    socket.on("join-session", async (args, user) => {
-        const session = await sessionFind(args, user);
+    if (socket.user !== "noppa" && socket.user !== "random") {
+        socketCheck(socket, socket.user);
+    }
+
+    socket.on("join-session", async (args) => {
+        console.log("Joining", args);
+        const session = await sessionFind(args, socket.user);
         if (session) {
+            console.log(session);
             socket.join(args);
             socket.emit("join", args);
             socket.to(args).emit("users", session);
+            socketCheck(socket, socket.user);
         }
     });
 
-    socket.on("leave-session", async (args, user) => {
-        const session = await sessionLeave(args, user);
+    socket.on("leave-session", async (args) => {
+        const session = await sessionLeave(args, socket.user);
         if (session) {
             socket.leave(args);
             socket.to(args).emit("users", session);
         }
     });
 
-    if (socket.user !== "noppa" && socket.user !== "random") {
-        socketCheck(socket, socket.user);
-    }
+    socket.on("invite", (args) => {
+        // add a check if arg.inv exists
+        socket.to(args.inv).emit("invited-to", [args.session, args.user]);
+    });
 
     socket.on("create-user", async (args) => {
         const user = await createUser(args.username, args.password);

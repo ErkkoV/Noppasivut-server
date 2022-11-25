@@ -114,13 +114,16 @@ const sessionList = async (user) => {
 const sessionFind = async (session, user) => {
     const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
-        'UPDATE public."Sessions" SET "users" = $2, WHERE "name" = $1';
+        'UPDATE public."Sessions" SET "users" = $2 WHERE "name" = $1';
     try {
         const userlist = await pool.query(findText, [session]);
-        const Users = userlist.users;
+        console.log(userlist);
+        const Users = userlist.rows[0].users;
         Users.push(user);
         const res = await pool.query(sessionText, [session, Users]);
-        return res.rows;
+        if (res) {
+            return Users;
+        }
     } catch (err) {
         console.log(err);
     }
@@ -132,7 +135,7 @@ const sessionLeave = async (session, user) => {
         'UPDATE public."Sessions" SET "users" = $2, WHERE "name" = $1';
     try {
         const userlist = await pool.query(findText, [session]);
-        const Users = userlist.users;
+        const Users = userlist.rows[0].users;
         Users.filter((name) => name !== user);
         const res = await pool.query(sessionText, [session, Users]);
         return res.rows;
