@@ -124,42 +124,42 @@ io.on("connection", (socket) => {
     socket.on("probs-front", async (args) => {
         console.log(socket.user);
         console.log(socket.id);
-        const prob = await sendProb(args);
+        const prob = await sendProb(args[1]);
         if (prob) {
-            const probs = await readProbs();
+            const probs = await readProbs(args[0]);
             io.to(args.session).emit("probs-back", probs);
         }
     });
 
     socket.on("rolls-front", async (args) => {
-        const roll = await sendRoll(args);
+        const roll = await sendRoll(args[1]);
         if (roll) {
-            const rolls = await readRolls();
+            const rolls = await readRolls(args[0]);
             io.to(args.session).emit("rolls-back", rolls);
         }
     });
 
     socket.on("rolls-front-del", async (args) => {
-        const roll = await delRoll(args);
+        const roll = await delRoll(args[1]);
         if (roll) {
-            const rolls = await readRolls();
+            const rolls = await readRolls(args[0]);
             io.to(args.session).emit("rolls-back", rolls);
         }
     });
 
     socket.on("probs-front-del", async (args) => {
-        const prob = await delProb(args);
+        const prob = await delProb(args[1]);
         if (prob) {
-            const probs = await readProbs();
+            const probs = await readProbs(args[0]);
             io.to(args.session).emit("probs-back", probs);
         }
     });
 
-    socket.on("load-data", async () => {
-        const probs = await readProbs();
-        const rolls = await readRolls();
-        io.to(args.session).emit("rolls-back", rolls);
-        io.to(args.session).emit("probs-back", probs);
+    socket.on("load-data", async (args) => {
+        const probs = await readProbs(args);
+        const rolls = await readRolls(args);
+        io.to(args).emit("rolls-back", rolls);
+        io.to(args).emit("probs-back", probs);
     });
 
     socket.on("messages-front", async (args) => {
