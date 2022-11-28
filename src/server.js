@@ -125,7 +125,8 @@ io.on("connection", (socket) => {
 
     socket.on("create-session", async (args) => {
         const session = await sessionCreate(args, socket.user);
-        if (session) {
+        socket.emit("add-session", session);
+        if (session === "Session added") {
             console.log(session);
         }
     });
