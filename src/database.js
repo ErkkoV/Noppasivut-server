@@ -146,6 +146,16 @@ const sessionLeave = async (session, user) => {
     }
 };
 
+const sessionCreate = async (session, user) => {
+    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    try {
+        const res = await pool.query(findText, [session]);
+        console.log(res.rows);
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const sendMessage = async (mess) => {
     const messtext =
         'INSERT INTO public."Messages"(username, message, session) VALUES($1, $2, $3)';
@@ -286,4 +296,5 @@ export {
     sessionList,
     sessionFind,
     sessionLeave,
+    sessionCreate,
 };
