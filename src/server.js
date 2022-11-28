@@ -19,6 +19,7 @@ import {
     sessionList,
     sessionFind,
     sessionLeave,
+    sessionCreate,
 } from "./database.js";
 
 pool.connect();
@@ -119,6 +120,13 @@ io.on("connection", (socket) => {
         if (session) {
             socket.leave(args);
             socket.to(args).emit("users", session);
+        }
+    });
+
+    socket.on("create-session", async (args) => {
+        const session = await sessionCreate(args, socket.user);
+        if (session) {
+            console.log(session);
         }
     });
 
