@@ -49,6 +49,17 @@ const createDB = () => {
     });
 };
 
+const userListing = async () => {
+    const userText = 'SELECT username FROM public."Users"';
+    try {
+        const res = await pool.query(userText);
+        const list = res.rows.map((name) => name.username);
+        return list;
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const createUser = async (user, password) => {
     const findText = 'SELECT username FROM public."Users" WHERE username = $1';
     try {
@@ -320,4 +331,5 @@ export {
     sessionFind,
     sessionLeave,
     sessionCreate,
+    userListing,
 };

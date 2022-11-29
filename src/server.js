@@ -20,6 +20,7 @@ import {
     sessionFind,
     sessionLeave,
     sessionCreate,
+    userListing,
 } from "./database.js";
 
 pool.connect();
@@ -42,6 +43,12 @@ const io = new Server(httpServer, {
         // origin: `http://10.201.204.40`,
     },
 });
+
+const allUsers = async (sock) => {
+    const userlist = await userListing();
+    sock.emit("all-users", userlist);
+    sock.broadcast.emit("all-users", userlist);
+};
 
 const loginUser = async (user, pass) => {
     console.log(user, pass);
@@ -74,6 +81,7 @@ const socketCheck = async (sock, user) => {
         });
         const allSocks = socketList.map((each) => each.name);
         sock.emit("sessions", allSocks);
+        allUsers(sock);
     }
 };
 
@@ -108,6 +116,8 @@ io.on("connection", (socket) => {
     if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket, socket.user);
     }
+
+    allUsers(socket);
 
     socket.on("join-session", async (args) => {
         console.log("Joining", args);
