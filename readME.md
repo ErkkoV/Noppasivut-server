@@ -6,7 +6,7 @@ Noppasivut is a dice-roller and probability-calculator for a roleplaying system.
 
 ### Stuff used
 
-Noppasivut-back uses node.js to run the back-end, socket.io to connect the back-and front-end and node-postgres for the postgreSQL-database connection.
+Noppasivut-back uses node.js to run the back-end, socket.io to connect the back-end front-end and node-postgres for the postgreSQL-database connection.
 
 ### Build
 
