@@ -102,7 +102,7 @@ const loginCheck = async (user, password) => {
 
 const sessionList = async (user) => {
     const sessionText =
-        'SELECT name, users FROM public."Sessions" WHERE $1 = ANY(users)';
+        'SELECT name, users, owner, private, admins FROM public."Sessions" WHERE $1 = ANY(users)';
     try {
         const res = await pool.query(sessionText, [user]);
         return res.rows;
