@@ -201,9 +201,12 @@ io.on("connection", (socket) => {
 
         io.to(args).emit("rolls-back", rolls);
         io.to(args).emit("probs-back", probs);
-        io.to(args).emit("owner", socks.owner);
-        io.to(args).emit("admins", socks.admins);
-        io.to(args).emit("users", socks.users);
+
+        if (socks !== "Default user") {
+            io.to(args).emit("owner", socks.owner);
+            io.to(args).emit("admins", socks.admins);
+            io.to(args).emit("users", socks.users);
+        }
     });
 
     socket.on("messages-front", async (args) => {

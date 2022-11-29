@@ -122,7 +122,11 @@ const readSocks = async (session) => {
         'SELECT owner, admins, users FROM public."Sessions" WHERE "name" = $1';
     try {
         const res = await pool.query(sessText, [session]);
-        return res.rows[0];
+        if (res.rows.length > 0) {
+            return res.rows[0];
+        } else {
+            return "Default user";
+        }
     } catch (err) {
         console.log(err);
     }
