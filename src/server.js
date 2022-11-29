@@ -64,9 +64,13 @@ const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
     if (socketList) {
         socketList.forEach(async (each) => {
+            console.log(each);
             sock.join(each.name);
             sock.emit("join", each.name);
             sock.emit("users", each.users);
+            sock.emit("owner", each.owner);
+            sock.emit("admins", each.admins);
+            sock.emit("private", each.private);
         });
     }
 };
