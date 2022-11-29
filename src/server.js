@@ -110,12 +110,14 @@ io.on("connection", (socket) => {
     socket.on("join-session", async (args) => {
         console.log("Joining", args);
         const session = await sessionFind(args, socket.user);
-        if (session) {
+        if (session && session !== "Private session") {
             console.log(session);
             socket.join(args);
             socket.emit("join", args);
             socket.to(args).emit("users", session);
             socketCheck(socket, socket.user);
+        } else {
+            socket.emit("join", session);
         }
     });
 
