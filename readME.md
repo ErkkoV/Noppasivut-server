@@ -2,7 +2,7 @@
 
 ### About Noppasivut
 
-Noppasivut is a dice-roller and probability-calculator for a roleplaying system. It enables users to join same session in order to chat and share dicel rolls and probability calculations.
+Noppasivut is a dice-roller and probability-calculator for a roleplaying system. It enables users to join same session in order to chat and share dice rolls and probability calculations.
 
 ### Stuff used
 
