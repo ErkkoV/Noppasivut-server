@@ -29,7 +29,7 @@ const messagetext =
 const usertext =
     'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
 const sessionsText =
-    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "name" varchar(255) NOT NULL, "admin" text NOT NULL, "users" text[], "rolls" integer[], "probs" integer[], "messages" integer[])';
+    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "name" varchar(255) NOT NULL, "owner" text NOT NULL, "admins" text[], "users" text[], "private" BOOLEAN NOT NULL)';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
