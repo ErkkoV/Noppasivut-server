@@ -118,11 +118,15 @@ const sessionList = async (user) => {
 };
 
 const sessionFind = async (session, user) => {
-    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const findText =
+        'SELECT users, private FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
         'UPDATE public."Sessions" SET "users" = $2 WHERE "name" = $1';
     try {
         const userlist = await pool.query(findText, [session]);
+        if (userlist.rows[0].private) {
+            return "Private session";
+        }
         console.log(userlist);
         const Users = userlist.rows[0].users;
         if (!Users.includes(user)) {
