@@ -72,6 +72,8 @@ const socketCheck = async (sock, user) => {
             sock.emit("admins", each.admins);
             sock.emit("private", each.private);
         });
+        const allSocks = socketList.map((each) => each.name);
+        sock.emit("sessions", allSocks);
     }
 };
 
