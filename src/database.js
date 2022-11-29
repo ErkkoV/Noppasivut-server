@@ -117,6 +117,17 @@ const loginCheck = async (user, password) => {
     }
 };
 
+const readSocks = async (session) => {
+    const sessText =
+        'SELECT owner, admins, users FROM public."Sessions" WHERE "name" = $1';
+    try {
+        const res = await pool.query(sessText, [session]);
+        return res.rows[0];
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const sessionList = async (user) => {
     const sessionText =
         'SELECT name, users, owner, private, admins FROM public."Sessions" WHERE $1 = ANY(users)';
@@ -332,4 +343,5 @@ export {
     sessionLeave,
     sessionCreate,
     userListing,
+    readSocks,
 };

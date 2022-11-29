@@ -21,6 +21,7 @@ import {
     sessionLeave,
     sessionCreate,
     userListing,
+    readSocks,
 } from "./database.js";
 
 pool.connect();
@@ -196,8 +197,13 @@ io.on("connection", (socket) => {
     socket.on("load-data", async (args) => {
         const probs = await readProbs(args);
         const rolls = await readRolls(args);
+        const socks = await readSocks(args);
+
         io.to(args).emit("rolls-back", rolls);
         io.to(args).emit("probs-back", probs);
+        io.to(args).emit("owner", socks.owner);
+        io.to(args).emit("admins", socks.admins);
+        io.to(args).emit("users", socks.users);
     });
 
     socket.on("messages-front", async (args) => {
