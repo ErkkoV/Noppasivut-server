@@ -1,25 +1,28 @@
-# Noppasivut-back
+## Noppasivut-back
 
-## About Noppasivut
+### About Noppasivut
 
-Noppasivut is a dice-roller and probability-calculator for a roleplaying system. It enables users to join same session and share dice rolls and calculations with each other.
+Noppasivut is a dice-roller and probability-calculator for a roleplaying system. It enables users to join same session in order to chat and share dicel rolls and probability calculations.
 
-## Stuff used
+### Stuff used
 
-Noppasivut uses node.js to run the back-end, socket.io to connect the back-and front-end and node-postgres to connect the postgreSQL-database.
+Noppasivut-back uses node.js to run the back-end, socket.io to connect the back-end front-end and node-postgres for the postgreSQL-database connection.
 
-## Build
+### Build
+
+With docker:
 
 ```
 docker-compose up --build -d
 ```
 
-or
+With npm:
 
 ```
 npm start
 ```
 
-## Mogenius-setup-branch
+### Noppasivut front
 
-Mogenius hosts noppasivut-back and postgreSQL-database.
+Noppasivut-back works with Noppasivut-Front:
+https://github.com/ErkkoV/Noppasivut-front
