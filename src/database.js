@@ -71,8 +71,14 @@ const createUser = async (user, password) => {
     }
     try {
         const createText =
-            'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
-        const res = await pool.query(createText, [user, user, [user]]);
+            'INSERT INTO public."Sessions"(name, owner, users, admins, private) VALUES($1, $2, $3, $4, $5)';
+        const res = await pool.query(createText, [
+            user,
+            user,
+            [user],
+            [user],
+            true,
+        ]);
         console.log("SESSION", res);
         return "User added";
     } catch (err) {
@@ -152,8 +158,14 @@ const sessionCreate = async (session, user) => {
         const res = await pool.query(findText, [session]);
         if (res.rows.length < 1) {
             const createText =
-                'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
-            const sess = await pool.query(createText, [session, user, [user]]);
+                'INSERT INTO public."Sessions"(name, owner, users, admins, private) VALUES($1, $2, $3, $4, $5)';
+            const sess = await pool.query(createText, [
+                session,
+                user,
+                [user],
+                [user],
+                false,
+            ]);
             console.log("SESSION", sess);
             return "Session added";
         }
