@@ -20,6 +20,8 @@ import {
     sessionFind,
     sessionLeave,
     sessionCreate,
+    userListing,
+    readSocks,
 } from "./database.js";
 
 pool.connect();
@@ -43,6 +45,12 @@ const io = new Server(httpServer, {
     },
 });
 
+const allUsers = async (sock) => {
+    const userlist = await userListing();
+    sock.emit("all-users", userlist);
+    sock.broadcast.emit("all-users", userlist);
+};
+
 const loginUser = async (user, pass) => {
     console.log(user, pass);
     if (user === "noppa" && pass === "noppa") {
@@ -64,10 +72,17 @@ const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
     if (socketList) {
         socketList.forEach(async (each) => {
+            console.log(each);
             sock.join(each.name);
             sock.emit("join", each.name);
             sock.emit("users", each.users);
+            sock.emit("owner", each.owner);
+            sock.emit("admins", each.admins);
+            sock.emit("private", each.private);
         });
+        const allSocks = socketList.map((each) => each.name);
+        sock.emit("sessions", allSocks);
+        allUsers(sock);
     }
 };
 
@@ -103,15 +118,19 @@ io.on("connection", (socket) => {
         socketCheck(socket, socket.user);
     }
 
+    allUsers(socket);
+
     socket.on("join-session", async (args) => {
         console.log("Joining", args);
         const session = await sessionFind(args, socket.user);
-        if (session) {
+        if (session && session !== "Private session") {
             console.log(session);
             socket.join(args);
             socket.emit("join", args);
             socket.to(args).emit("users", session);
             socketCheck(socket, socket.user);
+        } else {
+            socket.emit("join", session);
         }
     });
 
@@ -178,8 +197,16 @@ io.on("connection", (socket) => {
     socket.on("load-data", async (args) => {
         const probs = await readProbs(args);
         const rolls = await readRolls(args);
+        const socks = await readSocks(args);
+
         io.to(args).emit("rolls-back", rolls);
         io.to(args).emit("probs-back", probs);
+
+        if (socks !== "Default user") {
+            io.to(args).emit("owner", socks.owner);
+            io.to(args).emit("admins", socks.admins);
+            io.to(args).emit("users", socks.users);
+        }
     });
 
     socket.on("messages-front", async (args) => {

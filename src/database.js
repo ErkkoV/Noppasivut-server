@@ -29,7 +29,7 @@ const messagetext =
 const usertext =
     'CREATE TABLE IF NOT EXISTS public."Users"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "username" varchar(255) NOT NULL, "password" varchar(255) NOT NULL, "sessions" text[])';
 const sessionsText =
-    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "name" varchar(255) NOT NULL, "admin" text NOT NULL, "users" text[], "rolls" integer[], "probs" integer[], "messages" integer[])';
+    'CREATE TABLE IF NOT EXISTS public."Sessions"("id" SERIAL NOT NULL PRIMARY KEY, "time" timestamp without time zone default CURRENT_TIMESTAMP NOT NULL, "name" varchar(255) NOT NULL, "owner" text NOT NULL, "admins" text[], "users" text[], "private" BOOLEAN NOT NULL)';
 
 const createDB = () => {
     pool.query(probtext, (err, res) => {
@@ -47,6 +47,17 @@ const createDB = () => {
     pool.query(sessionsText, (err, res) => {
         console.log(err, res);
     });
+};
+
+const userListing = async () => {
+    const userText = 'SELECT username FROM public."Users"';
+    try {
+        const res = await pool.query(userText);
+        const list = res.rows.map((name) => name.username);
+        return list;
+    } catch (err) {
+        console.log(err);
+    }
 };
 
 const createUser = async (user, password) => {
@@ -71,8 +82,14 @@ const createUser = async (user, password) => {
     }
     try {
         const createText =
-            'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
-        const res = await pool.query(createText, [user, user, [user]]);
+            'INSERT INTO public."Sessions"(name, owner, users, admins, private) VALUES($1, $2, $3, $4, $5)';
+        const res = await pool.query(createText, [
+            user,
+            user,
+            [user],
+            [user],
+            true,
+        ]);
         console.log("SESSION", res);
         return "User added";
     } catch (err) {
@@ -100,9 +117,24 @@ const loginCheck = async (user, password) => {
     }
 };
 
+const readSocks = async (session) => {
+    const sessText =
+        'SELECT owner, admins, users FROM public."Sessions" WHERE "name" = $1';
+    try {
+        const res = await pool.query(sessText, [session]);
+        if (res.rows.length > 0) {
+            return res.rows[0];
+        } else {
+            return "Default user";
+        }
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const sessionList = async (user) => {
     const sessionText =
-        'SELECT name, users FROM public."Sessions" WHERE $1 = ANY(users)';
+        'SELECT name, users, owner, private, admins FROM public."Sessions" WHERE $1 = ANY(users)';
     try {
         const res = await pool.query(sessionText, [user]);
         return res.rows;
@@ -112,11 +144,15 @@ const sessionList = async (user) => {
 };
 
 const sessionFind = async (session, user) => {
-    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const findText =
+        'SELECT users, private FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
         'UPDATE public."Sessions" SET "users" = $2 WHERE "name" = $1';
     try {
         const userlist = await pool.query(findText, [session]);
+        if (userlist.rows[0].private) {
+            return "Private session";
+        }
         console.log(userlist);
         const Users = userlist.rows[0].users;
         if (!Users.includes(user)) {
@@ -152,8 +188,14 @@ const sessionCreate = async (session, user) => {
         const res = await pool.query(findText, [session]);
         if (res.rows.length < 1) {
             const createText =
-                'INSERT INTO public."Sessions"(name, admin, users) VALUES($1, $2, $3)';
-            const sess = await pool.query(createText, [session, user, [user]]);
+                'INSERT INTO public."Sessions"(name, owner, users, admins, private) VALUES($1, $2, $3, $4, $5)';
+            const sess = await pool.query(createText, [
+                session,
+                user,
+                [user],
+                [user],
+                false,
+            ]);
             console.log("SESSION", sess);
             return "Session added";
         }
@@ -304,4 +346,6 @@ export {
     sessionFind,
     sessionLeave,
     sessionCreate,
+    userListing,
+    readSocks,
 };
