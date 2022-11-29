@@ -16,7 +16,7 @@ With docker:
 docker-compose up --build -d
 ```
 
-With npm
+With npm:
 
 ```
 npm start
