@@ -68,7 +68,7 @@ const createUser = async (user, password) => {
             return "Username in use";
         }
     } catch {
-        console.log("Name not used");
+        console.log("Adding name", user);
     }
 
     const createtext =
