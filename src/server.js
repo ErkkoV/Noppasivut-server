@@ -39,10 +39,11 @@ const sessionMiddleware = session({
 const io = new Server(httpServer, {
     cors: {
         // origin: "https://noppasivut-fro-prod-noppasivut-s5xa1s.mo5.mogenius.io:3000",
-        origin: `http://localhost`,
+        // origin: `http://localhost`,
         // origin: "http://10.69.168.88:3000",
-        // origin: `http://10.201.204.40`,
+        origin: `http://10.201.204.40`,
     },
+    perMessageDeflate: false,
 });
 
 const allUsers = async (sock) => {
@@ -52,12 +53,10 @@ const allUsers = async (sock) => {
 };
 
 const loginUser = async (user, pass) => {
-    console.log(user, pass);
     if (user === "noppa" && pass === "noppa") {
         return "noppa";
     } else {
         const res = await loginCheck(user, pass);
-        console.log(res);
         if (res === "wrong password") {
             return "random";
         } else if (res === "user does not exist") {
@@ -72,7 +71,6 @@ const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
     if (socketList) {
         socketList.forEach(async (each) => {
-            console.log(each);
             sock.join(each.name);
             sock.emit("join", each.name);
             sock.emit("users", each.users);
@@ -121,10 +119,8 @@ io.on("connection", (socket) => {
     allUsers(socket);
 
     socket.on("join-session", async (args) => {
-        console.log("Joining", args);
         const session = await sessionFind(args, socket.user);
         if (session && session !== "Private session") {
-            console.log(session);
             socket.join(args);
             socket.emit("join", args);
             socket.to(args).emit("users", session);

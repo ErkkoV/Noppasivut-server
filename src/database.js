@@ -75,8 +75,7 @@ const createUser = async (user, password) => {
         'INSERT INTO public."Users"(username, password) VALUES($1, $2)';
     try {
         const cryptedPass = await hashStuff(password);
-        const res = await pool.query(createtext, [user, cryptedPass]);
-        console.log(res);
+        await pool.query(createtext, [user, cryptedPass]);
     } catch {
         return "Failed to add user";
     }
@@ -90,8 +89,9 @@ const createUser = async (user, password) => {
             [user],
             true,
         ]);
-        console.log("SESSION", res);
-        return "User added";
+        if (res) {
+            return "User added";
+        }
     } catch (err) {
         console.log(err);
     }
@@ -105,7 +105,7 @@ const loginCheck = async (user, password) => {
     try {
         const res = await pool.query(logintext, [user]);
         const check = await checkPass(password, res.rows[0].password);
-        console.log(check);
+
         if (check) {
             return user;
         } else {
@@ -153,7 +153,6 @@ const sessionFind = async (session, user) => {
         if (userlist.rows[0].private) {
             return "Private session";
         }
-        console.log(userlist);
         const Users = userlist.rows[0].users;
         if (!Users.includes(user)) {
             Users.push(user);
@@ -196,8 +195,9 @@ const sessionCreate = async (session, user) => {
                 [user],
                 false,
             ]);
-            console.log("SESSION", sess);
-            return "Session added";
+            if (sess) {
+                return "Session added";
+            }
         }
         return "Session-name in use";
     } catch (err) {
