@@ -152,7 +152,12 @@ io.on("connection", (socket) => {
 
     socket.on("invite", (args) => {
         // add a check if arg.inv exists
+        // add online check? or add way to check existing invites on join
         socket.to(args.inv).emit("invited-to", [args.session, args.user]);
+    });
+
+    socket.on("invite-answer", (args) => {
+        socket.to(args[1]).emit("answer", [args[0], socket.user, args[2]]);
     });
 
     socket.on("create-user", async (args) => {
