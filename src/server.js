@@ -157,7 +157,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("invite-answer", (args) => {
-        socket.to(args[1].emit("answer", [args[0], socket.user, args[2]]));
+        socket.to(args[1]).emit("answer", [args[0], socket.user, args[2]]);
     });
 
     socket.on("create-user", async (args) => {
