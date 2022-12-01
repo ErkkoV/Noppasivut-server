@@ -152,6 +152,7 @@ io.on("connection", (socket) => {
 
     socket.on("invite", (args) => {
         // add a check if arg.inv exists
+        // add online check? or add way to check existing invites on join
         socket.to(args.inv).emit("invited-to", [args.session, args.user]);
     });
 
