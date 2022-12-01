@@ -48,8 +48,17 @@ const io = new Server(httpServer, {
 
 const allUsers = async (sock) => {
     const userlist = await userListing();
-    sock.emit("all-users", userlist);
-    sock.broadcast.emit("all-users", userlist);
+    const sockets = await io.fetchSockets();
+    const online = sockets.map((so) => so.user);
+    const onlineUsers = userlist.map((user) => {
+        if (online.includes(user)) {
+            return [user, true];
+        } else {
+            return [user, false];
+        }
+    });
+    sock.emit("all-users", onlineUsers);
+    sock.broadcast.emit("all-users", onlineUsers);
 };
 
 const loginUser = async (user, pass) => {
