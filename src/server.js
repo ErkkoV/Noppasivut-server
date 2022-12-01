@@ -50,8 +50,6 @@ const allUsers = async (sock) => {
     const userlist = await userListing();
     const sockets = await io.fetchSockets();
     const online = sockets.map((so) => so.user);
-    console.log(online);
-
     const onlineUsers = userlist.map((user) => {
         if (online.includes(user)) {
             return [user, true];
@@ -59,9 +57,6 @@ const allUsers = async (sock) => {
             return [user, false];
         }
     });
-
-    console.log(onlineUsers);
-
     sock.emit("all-users", onlineUsers);
     sock.broadcast.emit("all-users", onlineUsers);
 };
