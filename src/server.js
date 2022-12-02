@@ -22,6 +22,7 @@ import {
     sessionCreate,
     userListing,
     readSocks,
+    adminUpdate,
 } from "./database.js";
 
 pool.connect();
@@ -149,6 +150,7 @@ io.on("connection", (socket) => {
 
             if (socket.user !== args.user) {
                 socket.to(args.user).emit("kicked", args.session);
+                socket.emit("users", session);
             }
         }
     });
@@ -158,6 +160,15 @@ io.on("connection", (socket) => {
         socket.emit("add-session", session);
         if (session === "Session added") {
             socketCheck(socket, socket.user);
+        }
+    });
+
+    socket.on("admin", async (args) => {
+        const session = await adminUpdate(args.session, args.user, args.status);
+        if (session) {
+            console.log(session);
+            socket.to(args.session).emit("users", session);
+            socket.emit("users", session);
         }
     });
 

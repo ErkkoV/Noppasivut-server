@@ -173,7 +173,7 @@ const adminUpdate = async (session, user, status) => {
     const sessionText =
         'UPDATE public."Sessions" SET "admins" = $2 WHERE "name" = $1';
     try {
-        const userlist = pool.query(findText, [session]);
+        const userlist = await pool.query(findText, [session]);
         const admins = userlist.rows[0].admins;
         let newAdmins = admins;
         if (!status) {
