@@ -22,6 +22,7 @@ import {
     sessionCreate,
     userListing,
     readSocks,
+    adminUpdate,
 } from "./database.js";
 
 pool.connect();
@@ -78,16 +79,15 @@ const loginUser = async (user, pass) => {
 
 const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
+    const allSocks = [];
     if (socketList) {
         socketList.forEach(async (each) => {
+            allSocks.push(each.name);
             sock.join(each.name);
-            sock.emit("join", each.name);
-            sock.emit("users", each.users);
-            sock.emit("owner", each.owner);
-            sock.emit("admins", each.admins);
-            sock.emit("private", each.private);
+            if ((each.name = user)) {
+                sock.emit("join", each.name);
+            }
         });
-        const allSocks = socketList.map((each) => each.name);
         sock.emit("sessions", allSocks);
         allUsers(sock);
     }
@@ -135,15 +135,23 @@ io.on("connection", (socket) => {
             socket.to(args).emit("users", session);
             socketCheck(socket, socket.user);
         } else {
-            socket.emit("join", session);
+            socket.emit("join", session.name);
         }
     });
 
     socket.on("leave-session", async (args) => {
-        const session = await sessionLeave(args, socket.user);
+        console.log(args);
+        const session = await sessionLeave(args.session, args.user);
         if (session) {
-            socket.leave(args);
+            console.log(session);
+            socket.leave(args.session);
             socket.to(args).emit("users", session);
+            socketCheck(socket, socket.user);
+
+            if (socket.user !== args.user) {
+                socket.to(args.user).emit("kicked", args.session);
+                socket.emit("users", session);
+            }
         }
     });
 
@@ -152,6 +160,15 @@ io.on("connection", (socket) => {
         socket.emit("add-session", session);
         if (session === "Session added") {
             socketCheck(socket, socket.user);
+        }
+    });
+
+    socket.on("admin", async (args) => {
+        const session = await adminUpdate(args.session, args.user, args.status);
+        if (session) {
+            console.log(session);
+            socket.to(args.session).emit("users", session);
+            socket.emit("users", session);
         }
     });
 
@@ -213,9 +230,7 @@ io.on("connection", (socket) => {
         io.to(args).emit("probs-back", probs);
 
         if (socks !== "Default user") {
-            io.to(args).emit("owner", socks.owner);
-            io.to(args).emit("admins", socks.admins);
-            io.to(args).emit("users", socks.users);
+            io.to(args).emit("users", socks);
         }
     });
 
