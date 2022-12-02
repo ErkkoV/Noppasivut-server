@@ -81,9 +81,11 @@ const socketCheck = async (sock, user) => {
     if (socketList) {
         socketList.forEach(async (each) => {
             sock.join(each.name);
-            sock.emit("join", each.name);
-            sock.emit("users", each);
+            if ((each.name = user)) {
+                sock.emit("join", each.name);
+            }
         });
+
         const allSocks = socketList.map((each) => each.name);
         sock.emit("sessions", allSocks);
         allUsers(sock);
@@ -137,11 +139,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on("leave-session", async (args) => {
+        console.log(args);
         const session = await sessionLeave(args.session, args.user);
         if (session) {
+            console.log(session);
             socket.leave(args.session);
             socket.to(args).emit("users", session);
             socketCheck(socket, socket.user);
+
+            if (socket.user !== args.user) {
+                socket.to(args.user).emit("kicked", args.session);
+            }
         }
     });
 

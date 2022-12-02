@@ -175,14 +175,15 @@ const adminUpdate = async (session, user, status) => {
     try {
         const userlist = pool.query(findText, [session]);
         const admins = userlist.rows[0].admins;
+        let newAdmins = admins;
         if (!status) {
-            admins.filter((admin) => admin !== user);
+            newAdmins = admins.filter((admin) => admin !== user);
         } else {
             if (!admins.includes(user)) {
-                admins.push(user);
+                newAdmins.push(user);
             }
         }
-        const res = pool.query(sessionText, [session, admins]);
+        const res = pool.query(sessionText, [session, newAdmins]);
         if (res) {
             userlist.rows[0].admins = admins;
             return userlist.rows[0];
@@ -194,19 +195,23 @@ const adminUpdate = async (session, user, status) => {
 
 const sessionLeave = async (session, user) => {
     const findText =
-        'SELECT users, admins FROM public."Sessions" WHERE "name" = $1';
+        'SELECT users, admins, name, private, owner FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
-        'UPDATE public."Sessions" SET "users" = $2, "admins" = $3, WHERE "name" = $1';
+        'UPDATE public."Sessions" SET "users" = $2, "admins" = $3 WHERE "name" = $1';
     try {
         const userlist = await pool.query(findText, [session]);
         const Users = userlist.rows[0].users;
         const Admins = userlist.rows[0].admins;
-        Users.filter((name) => name !== user);
-        Admins.filter((name) => name !== user);
-        const res = await pool.query(sessionText, [session, Users, Admins]);
+        const newUsers = Users.filter((name) => name !== user);
+        const newAdmins = Admins.filter((name) => name !== user);
+        const res = await pool.query(sessionText, [
+            session,
+            newUsers,
+            newAdmins,
+        ]);
         if (res) {
-            userlist.rows[0].users = Users;
-            userlist.rows[0].admins = Admins;
+            userlist.rows[0].users = newUsers;
+            userlist.rows[0].admins = newAdmins;
             return userlist.rows[0];
         }
     } catch (err) {
