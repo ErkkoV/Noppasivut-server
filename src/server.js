@@ -78,15 +78,15 @@ const loginUser = async (user, pass) => {
 
 const socketCheck = async (sock, user) => {
     const socketList = await sessionList(user);
+    const allSocks = [];
     if (socketList) {
         socketList.forEach(async (each) => {
+            allSocks.push(each.name);
             sock.join(each.name);
             if ((each.name = user)) {
                 sock.emit("join", each.name);
             }
         });
-
-        const allSocks = socketList.map((each) => each.name);
         sock.emit("sessions", allSocks);
         allUsers(sock);
     }
