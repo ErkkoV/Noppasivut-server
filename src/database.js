@@ -166,6 +166,35 @@ const sessionFind = async (session, user) => {
     }
 };
 
+const adminUpdate = async (session, user, status) => {
+    const findText =
+        'SELECT name, owner, admins, users, private FROM public."Sessions" WHERE "name" = $1';
+    const sessionText =
+        'UPDATE public."Sessions" SET "admins" = $2 WHERE "name" = $1';
+    try {
+        const userlist = pool.query(findText, [session]);
+        const admins = userlist.rows[0].admins;
+        if (!status) {
+            admins.filter((admin) => admin !== user);
+        } else {
+            if (!admins.includes(user)) {
+                admins.push(user);
+            }
+        }
+        const res = pool.query(sessionText, [session, admins]);
+        if (res)
+            return {
+                name: userlist.rows[0].name,
+                owner: userlist.rows[0].owner,
+                private: userlist.rows[0].private,
+                users: userlist.rows[0].users,
+                admins,
+            };
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 const sessionLeave = async (session, user) => {
     const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
@@ -348,4 +377,5 @@ export {
     sessionCreate,
     userListing,
     readSocks,
+    adminUpdate,
 };
