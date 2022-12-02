@@ -82,10 +82,7 @@ const socketCheck = async (sock, user) => {
         socketList.forEach(async (each) => {
             sock.join(each.name);
             sock.emit("join", each.name);
-            sock.emit("users", each.users);
-            sock.emit("owner", each.owner);
-            sock.emit("admins", each.admins);
-            sock.emit("private", each.private);
+            sock.emit("users", each);
         });
         const allSocks = socketList.map((each) => each.name);
         sock.emit("sessions", allSocks);
@@ -135,7 +132,7 @@ io.on("connection", (socket) => {
             socket.to(args).emit("users", session);
             socketCheck(socket, socket.user);
         } else {
-            socket.emit("join", session);
+            socket.emit("join", session.name);
         }
     });
 
