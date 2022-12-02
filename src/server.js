@@ -137,10 +137,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("leave-session", async (args) => {
-        const session = await sessionLeave(args, socket.user);
+        const session = await sessionLeave(args.session, args.user);
         if (session) {
-            socket.leave(args);
+            socket.leave(args.session);
             socket.to(args).emit("users", session);
+            socketCheck(socket, socket.user);
         }
     });
 

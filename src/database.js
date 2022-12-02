@@ -193,15 +193,22 @@ const adminUpdate = async (session, user, status) => {
 };
 
 const sessionLeave = async (session, user) => {
-    const findText = 'SELECT users FROM public."Sessions" WHERE "name" = $1';
+    const findText =
+        'SELECT users, admins FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
-        'UPDATE public."Sessions" SET "users" = $2, WHERE "name" = $1';
+        'UPDATE public."Sessions" SET "users" = $2, "admins" = $3, WHERE "name" = $1';
     try {
         const userlist = await pool.query(findText, [session]);
         const Users = userlist.rows[0].users;
+        const Admins = userlist.rows[0].admins;
         Users.filter((name) => name !== user);
-        const res = await pool.query(sessionText, [session, Users]);
-        return res.rows;
+        Admins.filter((name) => name !== user);
+        const res = await pool.query(sessionText, [session, Users, Admins]);
+        if (res) {
+            userlist.rows[0].users = Users;
+            userlist.rows[0].admins = Admins;
+            return userlist.rows[0];
+        }
     } catch (err) {
         console.log(err);
     }
