@@ -119,7 +119,7 @@ const loginCheck = async (user, password) => {
 
 const readSocks = async (session) => {
     const sessText =
-        'SELECT owner, admins, users FROM public."Sessions" WHERE "name" = $1';
+        'SELECT owner, admins, users, private, name FROM public."Sessions" WHERE "name" = $1';
     try {
         const res = await pool.query(sessText, [session]);
         if (res.rows.length > 0) {
