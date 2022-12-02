@@ -145,7 +145,7 @@ const sessionList = async (user) => {
 
 const sessionFind = async (session, user) => {
     const findText =
-        'SELECT users, private FROM public."Sessions" WHERE "name" = $1';
+        'SELECT name, users, private, owner, admins FROM public."Sessions" WHERE "name" = $1';
     const sessionText =
         'UPDATE public."Sessions" SET "users" = $2 WHERE "name" = $1';
     try {
@@ -159,7 +159,8 @@ const sessionFind = async (session, user) => {
         }
         const res = await pool.query(sessionText, [session, Users]);
         if (res) {
-            return Users;
+            userlist.rows[0].users = Users;
+            return userlist.rows[0];
         }
     } catch (err) {
         console.log(err);
@@ -182,14 +183,10 @@ const adminUpdate = async (session, user, status) => {
             }
         }
         const res = pool.query(sessionText, [session, admins]);
-        if (res)
-            return {
-                name: userlist.rows[0].name,
-                owner: userlist.rows[0].owner,
-                private: userlist.rows[0].private,
-                users: userlist.rows[0].users,
-                admins,
-            };
+        if (res) {
+            userlist.rows[0].admins = admins;
+            return userlist.rows[0];
+        }
     } catch (err) {
         console.log(err);
     }
