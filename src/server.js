@@ -114,6 +114,14 @@ io.on("connection", (socket) => {
         socket.disconnect();
     }
 
+    socket.on("session-check", async () => {
+        const socketList = await sessionList(user);
+        const allSocks = socketList.map((each) => each.name);
+        if (allSocks) {
+            socket.emit("sessions", allSocks);
+        }
+    });
+
     socket.on("all-users-send", () => {
         allUsers(socket);
     });
