@@ -1,7 +1,5 @@
 import { createServer } from "http";
-import express from "express";
 import { Server } from "socket.io";
-import session from "express-session";
 
 import {
     pool,
@@ -28,14 +26,7 @@ import {
 pool.connect();
 createDB();
 
-const app = express();
-const httpServer = createServer(app);
-
-const sessionMiddleware = session({
-    secret: "nopat",
-    resave: false,
-    saveUninitialized: false,
-});
+const httpServer = createServer();
 
 const io = new Server(httpServer, {
     cors: {
@@ -51,6 +42,7 @@ const allUsers = async (sock) => {
     const userlist = await userListing();
     const sockets = await io.fetchSockets();
     const online = sockets.map((so) => so.user);
+    console.log(online);
     const onlineUsers = userlist.map((user) => {
         if (online.includes(user)) {
             return [user, true];
@@ -93,10 +85,9 @@ const socketCheck = async (sock, user) => {
     }
 };
 
-const wrap = (middleware) => (socket, next) =>
-    middleware(socket.request, {}, next);
+/* const wrap = (middleware) => (socket, next) =>
+    middleware(socket.request, {}, next); */
 
-io.use(wrap(sessionMiddleware));
 io.use(async (socket, next) => {
     const user = await socket.user;
     if (!user || socket.handshake.auth.username !== user) {
@@ -115,17 +106,26 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-    const session = socket.request.session;
-    session.socketId = socket.id;
-    session.save();
-
     socket.emit("user", socket.user);
 
     if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket, socket.user);
+    } else {
+        socket.disconnect();
     }
 
-    allUsers(socket);
+    socket.on("session-check", async (session) => {
+        socket.leave(session);
+        const socketList = await sessionList(socket.user);
+        const allSocks = socketList.map((each) => each.name);
+        if (allSocks) {
+            socket.emit("sessions", allSocks);
+        }
+    });
+
+    socket.on("all-users-send", () => {
+        allUsers(socket);
+    });
 
     socket.on("join-session", async (args) => {
         const session = await sessionFind(args, socket.user);
@@ -143,14 +143,16 @@ io.on("connection", (socket) => {
         console.log(args);
         const session = await sessionLeave(args.session, args.user);
         if (session) {
-            console.log(session);
-            socket.leave(args.session);
-            socket.to(args).emit("users", session);
-            socketCheck(socket, socket.user);
+            socket.to(args.session).emit("users", session);
+
+            console.log(socket.user, args.user);
 
             if (socket.user !== args.user) {
                 socket.to(args.user).emit("kicked", args.session);
                 socket.emit("users", session);
+            } else {
+                socket.leave(args.session);
+                socketCheck(socket, socket.user);
             }
         }
     });

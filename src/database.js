@@ -185,7 +185,7 @@ const adminUpdate = async (session, user, status) => {
         }
         const res = pool.query(sessionText, [session, newAdmins]);
         if (res) {
-            userlist.rows[0].admins = admins;
+            userlist.rows[0].admins = newAdmins;
             return userlist.rows[0];
         }
     } catch (err) {
