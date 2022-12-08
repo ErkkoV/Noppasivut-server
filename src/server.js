@@ -136,12 +136,13 @@ io.on("connection", (socket) => {
         if (session) {
             console.log(session);
             socket.leave(args.session);
-            socket.to(args).emit("users", session);
-            socketCheck(socket, socket.user);
+            socket.to(args.session).emit("users", session);
 
             if (socket.user !== args.user) {
                 socket.to(args.user).emit("kicked", args.session);
                 socket.emit("users", session);
+            } else {
+                socketCheck(socket, socket.user);
             }
         }
     });
@@ -157,7 +158,7 @@ io.on("connection", (socket) => {
     socket.on("admin", async (args) => {
         const session = await adminUpdate(args.session, args.user, args.status);
         if (session) {
-            console.log(session);
+            console.log(args.session);
             socket.to(args.session).emit("users", session);
             socket.emit("users", session);
         }
