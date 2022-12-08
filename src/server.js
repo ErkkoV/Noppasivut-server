@@ -167,7 +167,7 @@ io.on("connection", (socket) => {
     socket.on("admin", async (args) => {
         const session = await adminUpdate(args.session, args.user, args.status);
         if (session) {
-            console.log(args.session);
+            console.log(session);
             socket.to(args.session).emit("users", session);
             socket.emit("users", session);
         }
