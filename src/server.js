@@ -114,7 +114,9 @@ io.on("connection", (socket) => {
         socket.disconnect();
     }
 
-    allUsers(socket);
+    socket.on("all-users-send", () => {
+        allUsers(socket);
+    });
 
     socket.on("join-session", async (args) => {
         const session = await sessionFind(args, socket.user);
