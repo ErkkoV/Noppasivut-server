@@ -149,6 +149,7 @@ io.on("connection", (socket) => {
 
             if (socket.user !== args.user) {
                 socket.to(args.user).emit("kicked", args.session);
+                socket.emit("users", session);
             } else {
                 socket.leave(args.session);
                 socketCheck(socket, socket.user);
