@@ -42,7 +42,6 @@ const allUsers = async (sock) => {
     const userlist = await userListing();
     const sockets = await io.fetchSockets();
     const online = sockets.map((so) => so.user);
-    console.log(online);
     const onlineUsers = userlist.map((user) => {
         if (online.includes(user)) {
             return [user, true];
@@ -138,13 +137,9 @@ io.on("connection", (socket) => {
     });
 
     socket.on("leave-session", async (args) => {
-        console.log(args);
         const session = await sessionLeave(args.session, args.user);
         if (session) {
             socket.to(args.session).emit("users", session);
-
-            console.log(socket.user, args.user);
-
             if (socket.user !== args.user) {
                 socket.to(args.user).emit("kicked", args.session);
                 socket.emit("users", session);
@@ -166,7 +161,6 @@ io.on("connection", (socket) => {
     socket.on("admin", async (args) => {
         const session = await adminUpdate(args.session, args.user, args.status);
         if (session) {
-            console.log(session);
             socket.to(args.session).emit("users", session);
             socket.emit("users", session);
         }
