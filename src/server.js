@@ -114,8 +114,9 @@ io.on("connection", (socket) => {
         socket.disconnect();
     }
 
-    socket.on("session-check", async () => {
-        const socketList = await sessionList(user);
+    socket.on("session-check", async (session) => {
+        socket.leave(session);
+        const socketList = await sessionList(socket.user);
         const allSocks = socketList.map((each) => each.name);
         if (allSocks) {
             socket.emit("sessions", allSocks);
@@ -142,14 +143,14 @@ io.on("connection", (socket) => {
         console.log(args);
         const session = await sessionLeave(args.session, args.user);
         if (session) {
-            console.log(session);
-            socket.leave(args.session);
             socket.to(args.session).emit("users", session);
+
+            console.log(socket.user, args.user);
 
             if (socket.user !== args.user) {
                 socket.to(args.user).emit("kicked", args.session);
-                socket.emit("users", session);
             } else {
+                socket.leave(args.session);
                 socketCheck(socket, socket.user);
             }
         }
