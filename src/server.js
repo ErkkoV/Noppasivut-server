@@ -110,8 +110,6 @@ io.on("connection", (socket) => {
 
     if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket, socket.user);
-    } else {
-        socket.disconnect();
     }
 
     socket.on("session-check", async (session) => {
