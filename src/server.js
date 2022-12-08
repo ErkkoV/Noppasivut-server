@@ -1,7 +1,6 @@
 import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
-import session from "express-session";
 
 import {
     pool,
@@ -115,11 +114,8 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-    const session = socket.request.session;
-    session.socketId = socket.id;
-    session.save();
-
     socket.emit("user", socket.user);
+    console.log(socket.user);
 
     if (socket.user !== "noppa" && socket.user !== "random") {
         socketCheck(socket, socket.user);
